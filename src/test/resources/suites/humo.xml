@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  Humo: lo minimo indispensable, para correr en cada despliegue a DEV.
+  Ejecutar:  mvn test -Dsuite=humo
+-->
+<suite name="Humo AMEX PF" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+  </listeners>
+
+  <test name="Humo">
+    <groups>
+      <run>
+        <include name="humo"/>
+      </run>
+    </groups>
+    <packages>
+      <package name="com.amex.pf.pruebas"/>
+    </packages>
+  </test>
+</suite>

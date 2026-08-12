@@ -1,0 +1,52 @@
+name: Pruebas funcionales AMEX PF
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Regresión nocturna: 03:00 UTC (00:00 en Argentina)
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Suite a ejecutar (humo, regresion, login)"
+        default: humo
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Instalar Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Ejecutar pruebas
+        env:
+          # Usuario exclusivo de CI: la aplicación permite una sola sesión por usuario
+          AMEX_URL: ${{ secrets.AMEX_URL }}
+          AMEX_USUARIO: ${{ secrets.AMEX_USUARIO_CI }}
+          AMEX_CONTRASENA: ${{ secrets.AMEX_CONTRASENA_CI }}
+        run: |
+          SUITE="${{ github.event.inputs.suite }}"
+          if [ -z "$SUITE" ]; then
+            if [ "${{ github.event_name }}" = "schedule" ]; then SUITE=regresion; else SUITE=humo; fi
+          fi
+          mvn -B test -Dsuite=$SUITE
+
+      - name: Publicar reporte y evidencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes
+          path: |
+            target/surefire-reports/
+            resultados/evidencias/

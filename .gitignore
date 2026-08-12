@@ -1,0 +1,8 @@
+target/
+resultados/
+allure-results/
+.idea/
+*.iml
+.classpath
+.project
+.settings/

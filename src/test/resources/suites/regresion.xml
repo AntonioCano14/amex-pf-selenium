@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  Regresion funcional (pruebas de no afectacion).
+  Ejecuta todos los casos de solo lectura y excluye:
+  - defecto_conocido    : falla por un defecto abierto de la aplicacion (DEF-01)
+  - regla_por_confirmar : la matriz y la aplicacion no coinciden (PF_CP_114)
+  - escribe_datos       : casos que crean o modifican informacion
+
+  Ejecutar:  mvn test -Dsuite=regresion
+-->
+<suite name="Regresion AMEX PF - solo lectura" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+  </listeners>
+
+  <test name="Todos los modulos de solo lectura">
+    <groups>
+      <run>
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+        <exclude name="escribe_datos"/>
+      </run>
+    </groups>
+    <packages>
+      <package name="com.amex.pf.pruebas"/>
+    </packages>
+  </test>
+</suite>
