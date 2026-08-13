@@ -23,7 +23,7 @@ public class PaginaCatalogos extends PaginaBase {
     /** Abre la lista y devuelve los nombres de los catalogos que muestra hoy. */
     public List<String> catalogosDeLaLista() {
         List<String> nombres = abrirLaLista().stream()
-                .map(opcion -> opcion.getText().trim()).toList();
+                .map(this::textoDe).toList();
         cerrarOverlayConEscape();
         return nombres;
     }
@@ -46,21 +46,34 @@ public class PaginaCatalogos extends PaginaBase {
         return espera().until(
                 navegador -> {
                     List<WebElement> encontradas = navegador.findElements(Selectores.OPCIONES_DE_LISTA);
-                    return encontradas.isEmpty() ? null : encontradas;
+                    if (encontradas.isEmpty()) {
+                        return null;
+                    }
+                    // Mientras el panel se abre las opciones existen pero aun sin texto.
+                    boolean todasConTexto = encontradas.stream()
+                            .noneMatch(opcion -> textoDe(opcion).isEmpty());
+                    return todasConTexto ? encontradas : null;
                 });
+    }
+
+    /** Texto de una opcion, leido del DOM para no depender de la animacion del panel. */
+    private String textoDe(WebElement elemento) {
+        Object valor = ((JavascriptExecutor) navegador())
+                .executeScript("return arguments[0].textContent;", elemento);
+        return valor == null ? "" : valor.toString().replace('\u00a0', ' ').trim();
     }
 
     public PaginaCatalogos abrirCatalogo(String nombre) {
         List<WebElement> opciones = abrirLaLista();
 
         WebElement opcion = opciones.stream()
-                .filter(elemento -> elemento.getText().trim().equalsIgnoreCase(nombre.trim()))
+                .filter(elemento -> textoDe(elemento).equalsIgnoreCase(nombre.trim()))
                 .findFirst()
                 .orElse(null);
 
         if (opcion == null) {
             // Mensaje util para el tester: dice que catalogos SI existen hoy.
-            String disponibles = opciones.stream().map(WebElement::getText)
+            String disponibles = opciones.stream().map(this::textoDe)
                     .reduce((a, b) -> a + " | " + b).orElse("(ninguno)");
             Assert.fail("El catalogo \"" + nombre + "\" no aparece en la lista. "
                     + "La aplicacion muestra hoy: " + disponibles + ". "
@@ -73,7 +86,7 @@ public class PaginaCatalogos extends PaginaBase {
                 .executeScript("arguments[0].scrollIntoView({block: 'center'});", opcion);
         opcion.click();
 
-        Assert.assertEquals(verVisible(Selectores.CATALOGO_LISTA).getText().trim(), nombre,
+        Assert.assertEquals(textoDe(verVisible(Selectores.CATALOGO_LISTA)), nombre,
                 "La lista no quedo en el catalogo \"" + nombre + "\".");
         return this;
     }
