@@ -82,6 +82,7 @@ public class PaginaLogin extends PaginaBase {
     /** Cierra sesion por el menu del usuario. */
     public void cerrarSesion() {
         try {
+            cerrarModalSiEstaAbierto();
             cerrarOverlayConEscape();
         } catch (RuntimeException sinCuerpo) {
             // la pantalla ya no responde: se intenta el clic de todos modos

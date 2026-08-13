@@ -4,8 +4,9 @@
 <!--
   Regresion funcional (pruebas de no afectacion).
   Ejecuta todos los casos de solo lectura y excluye:
-  - defecto_conocido    : falla por un defecto abierto de la aplicacion (DEF-01)
-  - regla_por_confirmar : la matriz y la aplicacion no coinciden (PF_CP_114)
+  - defecto_conocido    : falla por un defecto abierto de la aplicacion
+                          (DEF_01 correo con "+", DEF_02 telefono movil con letras)
+  - regla_por_confirmar : la matriz y la aplicacion no coinciden
   - escribe_datos       : casos que crean o modifican informacion
 
   Ejecutar:  mvn test -Dsuite=regresion

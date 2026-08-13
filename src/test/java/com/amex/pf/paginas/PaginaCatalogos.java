@@ -1,9 +1,8 @@
 package com.amex.pf.paginas;
 
+import java.util.Arrays;
 import java.util.List;
 
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
 import com.amex.pf.base.Configuracion;
@@ -17,21 +16,18 @@ public class PaginaCatalogos extends PaginaBase {
      * coma) o con -Damex.catalogos="Nacionalidades,Profesiones,...".
      */
     public static String[] catalogosEsperados() {
-        return Configuracion.obtener("amex.catalogos").split("\\s*,\\s*");
+        return Configuracion.lista("amex.catalogos");
     }
 
     /** Abre la lista y devuelve los nombres de los catalogos que muestra hoy. */
     public List<String> catalogosDeLaLista() {
-        List<String> nombres = abrirLaLista().stream()
-                .map(this::textoDe).toList();
-        cerrarOverlayConEscape();
-        return nombres;
+        return opcionesDeLaLista(Selectores.CATALOGO_LISTA);
     }
 
     /** PF_CP_046: la lista debe contener los catalogos indicados. */
     public PaginaCatalogos laListaDebeContener(String... esperados) {
         List<String> disponibles = catalogosDeLaLista();
-        List<String> faltantes = java.util.Arrays.stream(esperados)
+        List<String> faltantes = Arrays.stream(esperados)
                 .filter(esperado -> disponibles.stream()
                         .noneMatch(actual -> actual.equalsIgnoreCase(esperado.trim())))
                 .toList();
@@ -41,51 +37,16 @@ public class PaginaCatalogos extends PaginaBase {
         return this;
     }
 
-    private List<WebElement> abrirLaLista() {
-        hacerClic(Selectores.CATALOGO_LISTA);
-        return espera().until(
-                navegador -> {
-                    List<WebElement> encontradas = navegador.findElements(Selectores.OPCIONES_DE_LISTA);
-                    if (encontradas.isEmpty()) {
-                        return null;
-                    }
-                    // Mientras el panel se abre las opciones existen pero aun sin texto.
-                    boolean todasConTexto = encontradas.stream()
-                            .noneMatch(opcion -> textoDe(opcion).isEmpty());
-                    return todasConTexto ? encontradas : null;
-                });
-    }
-
-    /** Texto de una opcion, leido del DOM para no depender de la animacion del panel. */
-    private String textoDe(WebElement elemento) {
-        Object valor = ((JavascriptExecutor) navegador())
-                .executeScript("return arguments[0].textContent;", elemento);
-        return valor == null ? "" : valor.toString().replace('\u00a0', ' ').trim();
-    }
-
     public PaginaCatalogos abrirCatalogo(String nombre) {
-        List<WebElement> opciones = abrirLaLista();
-
-        WebElement opcion = opciones.stream()
-                .filter(elemento -> textoDe(elemento).equalsIgnoreCase(nombre.trim()))
-                .findFirst()
-                .orElse(null);
-
-        if (opcion == null) {
+        try {
+            elegirDeLaLista(Selectores.CATALOGO_LISTA, nombre);
+        } catch (IllegalArgumentException noExiste) {
             // Mensaje util para el tester: dice que catalogos SI existen hoy.
-            String disponibles = opciones.stream().map(this::textoDe)
-                    .reduce((a, b) -> a + " | " + b).orElse("(ninguno)");
             Assert.fail("El catalogo \"" + nombre + "\" no aparece en la lista. "
-                    + "La aplicacion muestra hoy: " + disponibles + ". "
+                    + "La aplicacion muestra hoy: " + catalogosDeLaLista() + ". "
                     + "Si el catalogo cambio de nombre o ya no existe, actualice "
                     + "amex.catalogos en configuracion.properties.");
         }
-
-        // La lista puede tener mas opciones de las que caben en pantalla.
-        ((JavascriptExecutor) navegador())
-                .executeScript("arguments[0].scrollIntoView({block: 'center'});", opcion);
-        opcion.click();
-
         Assert.assertEquals(textoDe(verVisible(Selectores.CATALOGO_LISTA)), nombre,
                 "La lista no quedo en el catalogo \"" + nombre + "\".");
         return this;

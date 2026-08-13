@@ -77,4 +77,9 @@ public final class Configuracion {
     public static int esperaMaximaSegundos() {
         return Integer.parseInt(obtener("amex.espera"));
     }
+
+    /** Lee una propiedad con varios valores separados por coma. */
+    public static String[] lista(String clave) {
+        return obtener(clave).split("\\s*,\\s*");
+    }
 }
