@@ -36,6 +36,13 @@
       <artifactId>allure-testng</artifactId>
       <version>2.29.0</version>
     </dependency>
+    <!-- Evita el aviso "SLF4J: Failed to load class StaticLoggerBinder" -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -57,6 +64,10 @@
             <suiteXmlFile>src/test/resources/suites/${suite}.xml</suiteXmlFile>
           </suiteXmlFiles>
           <groups>${grupos}</groups>
+          <systemPropertyVariables>
+            <!-- Silencia los avisos de CDP de Selenium (ver logging.properties) -->
+            <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
+          </systemPropertyVariables>
           <!-- No detener la construccion por casos omitidos -->
           <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
         </configuration>
