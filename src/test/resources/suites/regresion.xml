@@ -14,6 +14,7 @@
 
   <listeners>
     <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
   </listeners>
 
   <test name="Todos los modulos de solo lectura">

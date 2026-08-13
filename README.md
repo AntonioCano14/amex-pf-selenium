@@ -152,7 +152,8 @@ amex-pf-selenium/
     │   │   ├── ValidacionesDeCamposPruebas.java
     │   │   └── CatalogosPruebas.java
     │   └── utilidades/
-    │       └── EvidenciaListener.java    ← captura de pantalla al fallar
+    │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
+    │       └── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
     └── resources/
         ├── configuracion.properties
         └── suites/                   ← humo.xml, regresion.xml, login.xml
@@ -203,7 +204,34 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 
 Un defecto **no se oculta cambiando la expectativa**: se etiqueta y se documenta.
 
-## 5.1 Mensajes de la consola que son normales
+## 5.1 Reporte en consola por caso
+
+Al terminar cada caso se imprime su **ID de la matriz** y su estado, y al final un
+resumen:
+
+```
+[PF_CP_004] APROBADO Usuario y contrasena correctos (1.3 s)
+[PF_CP_047-093] APROBADO Cada catalogo muestra su tabla ... -> Versiones (1.3 s)
+[PF_CP_046] FALLIDO  La lista muestra todos los catalogos esperados (0.7 s)
+            Motivo: Faltan catalogos en la lista: [Versiones].
+
+RESUMEN DE CASOS EJECUTADOS
+...
+Aprobados: 30 | Fallidos: 0 | Omitidos: 0
+```
+
+El ID sale de la **primera palabra de la descripción** del `@Test` (o del primer
+dato del `@DataProvider` cuando un método cubre varios IDs), así que un caso nuevo
+solo debe empezar su descripción con el ID de la matriz para aparecer identificado:
+
+```java
+@Test(groups = "navegacion", description = "PF_CP_120 Descripción del caso")
+```
+
+Esto lo hace `ReporteEnConsolaListener`, registrado en las suites XML junto con
+`EvidenciaListener`; no hay que tocarlo al agregar casos.
+
+## 5.2 Mensajes de la consola que son normales
 
 Al ejecutar aparecen líneas que **no son errores** y no afectan el resultado:
 
