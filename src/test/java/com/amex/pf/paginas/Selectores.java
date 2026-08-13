@@ -33,6 +33,15 @@ public final class Selectores {
     public static final By MODAL_BOTON_ACEPTAR =
             By.xpath("//mat-dialog-container//button[contains(., 'Aceptar')]");
 
+    public static By botonDelModal(String etiqueta) {
+        return By.xpath("//mat-dialog-container//button[contains(., '" + etiqueta + "')]");
+    }
+
+    public static By campoDelModal(String formcontrolname) {
+        return By.cssSelector(
+                "mat-dialog-container input[formcontrolname='" + formcontrolname + "']");
+    }
+
     // ------------------------------------------------------- Encabezado y menu
     public static final By SALUDO_USUARIO = By.xpath("//*[contains(text(), 'Hola,')]");
     public static final By MENU_USUARIO = By.cssSelector("button.mat-menu-trigger");
@@ -62,6 +71,37 @@ public final class Selectores {
             By.cssSelector("input[formcontrolname='lastName']");
     public static final By SOLICITUDES_CAMPO_DNI = By.cssSelector("input[formcontrolname='dni']");
     public static final By SOLICITUDES_CAMPO_CUIL = By.cssSelector("input[formcontrolname='cuil']");
+    public static final By SOLICITUDES_CAMPO_FECHA_NACIMIENTO =
+            By.cssSelector("input[formcontrolname='birthDate']");
+    /** La direccion es un textarea, no un input. */
+    public static final By SOLICITUDES_CAMPO_DIRECCION =
+            By.cssSelector("textarea[formcontrolname='street']");
+    public static final By SOLICITUDES_CALENDARIO = By.tagName("mat-datepicker-toggle");
+    public static final By SOLICITUDES_OPCIONES_PEP = By.cssSelector(
+            "mat-radio-group[formcontrolname='hasPoliticallyExposedApplicants'] mat-radio-button");
+    public static final By SOLICITUDES_OPCION_PEP_MARCADA = By.cssSelector(
+            "mat-radio-group[formcontrolname='hasPoliticallyExposedApplicants'] "
+                    + "mat-radio-button.mat-radio-checked");
+    public static final By SOLICITUDES_BOTON_AGREGAR_PEP = boton("AGREGAR ADICIONAL");
+
+    // --------------------------------------------------------------- Usuarios
+    public static final By USUARIOS_BOTON_AGREGAR = boton("AGREGAR USUARIO");
+    public static final By USUARIO_LISTA_AREA = By.cssSelector("mat-select[formcontrolname='area']");
+    public static final By USUARIO_LISTA_TIPO = By.cssSelector("mat-select[formcontrolname='rol']");
+    public static final By USUARIO_CAMPO_NOMBRES = By.cssSelector("input[formcontrolname='name']");
+    public static final By USUARIO_CAMPO_APELLIDOS =
+            By.cssSelector("input[formcontrolname='lastName']");
+    public static final By USUARIO_CAMPO_CARGO =
+            By.cssSelector("input[formcontrolname='position']");
+    public static final By USUARIO_CAMPO_CORREO = By.cssSelector("input[formcontrolname='email']");
+    public static final By USUARIO_LISTA_CODIGO_PAIS =
+            By.cssSelector("mat-select[formcontrolname='phoneCountryCode']");
+    public static final By USUARIO_CAMPO_TELEFONO_MOVIL =
+            By.cssSelector("input[formcontrolname='mobilePhone']");
+    public static final By USUARIO_CAMPO_TELEFONO_FIJO =
+            By.cssSelector("input[formcontrolname='phone']");
+    public static final By USUARIO_BOTON_GUARDAR = boton("GUARDAR REGISTRO");
+    public static final By BOTON_CANCELAR = boton("CANCELAR");
 
     // --------------------------------------------------------------- Catalogos
     public static final By CATALOGO_LISTA =
