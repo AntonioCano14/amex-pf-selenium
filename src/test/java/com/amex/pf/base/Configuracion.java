@@ -2,6 +2,8 @@ package com.amex.pf.base;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -23,7 +25,8 @@ public final class Configuracion {
         try (InputStream entrada = Configuracion.class.getClassLoader()
                 .getResourceAsStream("configuracion.properties")) {
             if (entrada != null) {
-                ARCHIVO.load(entrada);
+                // UTF-8 explicito: si no, los acentos se leen mal ("Campana").
+                ARCHIVO.load(new InputStreamReader(entrada, StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             throw new IllegalStateException("No se pudo leer configuracion.properties", e);

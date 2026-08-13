@@ -35,7 +35,7 @@ public final class Selectores {
 
     // ------------------------------------------------------- Encabezado y menu
     public static final By SALUDO_USUARIO = By.xpath("//*[contains(text(), 'Hola,')]");
-    public static final By MENU_USUARIO = By.cssSelector("mat-icon.mat-icon:last-of-type");
+    public static final By MENU_USUARIO = By.cssSelector("button.mat-menu-trigger");
     public static final By OPCION_SALIR = By.xpath("//button[contains(., 'Salir')]");
 
     public static By menuPrincipal(String nombre) {
@@ -67,6 +67,8 @@ public final class Selectores {
     public static final By CATALOGO_LISTA =
             By.xpath("//mat-form-field[contains(., 'Seleccionar catálogo')]//mat-select");
     public static final By CATALOGO_BOTON_AGREGAR = boton("AGREGAR ELEMENTO");
+
+    public static final By OPCIONES_DE_LISTA = By.tagName("mat-option");
 
     public static By opcionDeLista(String nombre) {
         return By.xpath("//mat-option[contains(., '" + nombre + "')]");

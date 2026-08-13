@@ -95,14 +95,17 @@ public class PaginaLogin extends PaginaBase {
      * Se llama al terminar cada caso: si quedo una sesion abierta la cierra, para
      * no dejar al usuario bloqueado (la aplicacion permite una sola sesion).
      */
-    public void cerrarSesionSiHayAlguna() {
+    public boolean cerrarSesionSiHayAlguna() {
         try {
-            if (estaVisible(Selectores.SALUDO_USUARIO, 2)) {
-                cerrarSesion();
+            if (!estaVisible(Selectores.SALUDO_USUARIO, 2)) {
+                return true; // no habia sesion abierta
             }
+            cerrarSesion();
+            return true;
         } catch (RuntimeException noSePudoCerrar) {
-            System.err.println("AVISO: no se pudo cerrar la sesion desde la pantalla: "
-                    + noSePudoCerrar.getMessage());
+            System.err.println("AVISO: no se pudo cerrar la sesion desde la pantalla, "
+                    + "se intentara por API: " + noSePudoCerrar.getMessage());
+            return false;
         }
     }
 

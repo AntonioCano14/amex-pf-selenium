@@ -61,11 +61,12 @@ con clic derecho y trae el plugin de TestNG incluido. Alternativas válidas:
 Todo está en un solo archivo: `src/test/resources/configuracion.properties`.
 
 ```properties
-amex.url=https://deveapplyargpf.firmaautografa.com/es-ar/business/consumer/eapply/expediente/
-amex.usuario=user-agency@na-at.com
+amex.url=https://qaeapplyargpf.firmaautografa.com/es-ar/business/consumer/eapply/expediente/
+amex.usuario=admin-centurion@na-at.com
 amex.navegador=chrome        # chrome | firefox | edge
 amex.headless=true           # false para ver la ejecución
 amex.espera=20               # segundos de espera máxima
+amex.catalogos=Nacionalidades,Profesiones,...   # catálogos esperados en la lista
 ```
 
 **La contraseña no se guarda en el repositorio.** Se pasa de una de estas formas:
@@ -202,14 +203,39 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 
 Un defecto **no se oculta cambiando la expectativa**: se etiqueta y se documenta.
 
+## 5.1 Mensajes de la consola que son normales
+
+Al ejecutar aparecen líneas que **no son errores** y no afectan el resultado:
+
+| Mensaje | Qué significa |
+|---|---|
+| `Unable to find CDP implementation matching 152` | Selenium no trae el módulo del protocolo de depuración para esa versión exacta de Chrome; solo se usa para funciones avanzadas (interceptar red) que esta suite no usa. |
+| `SLF4J: Failed to load class StaticLoggerBinder` | falta un motor de registro opcional. |
+| `Evidencia guardada: .../resultados/evidencias/...png` | **sí importa**: un caso falló y quedó la captura. |
+
+Los dos avisos ya están silenciados en el proyecto (`logging.properties` y la
+dependencia `slf4j-nop`); si aparecen en una copia anterior, se pueden ignorar.
+
+**Lo único que dice si la corrida estuvo bien es el resumen final:**
+`Tests run: N, Failures: 0, Errors: 0` → `BUILD SUCCESS`. Con `Failures` mayor a
+cero hay casos rojos: el detalle está en `target/surefire-reports/` y la captura
+en `resultados/evidencias/`.
+
 ## 6. Restricciones de la aplicación que hay que conocer
 
 1. **Una sola sesión activa por usuario.** Si una ejecución deja la sesión
    abierta, el siguiente intento muestra *"Usted ya cuenta con una sesión activa
    en otro dispositivo"* y el usuario queda bloqueado del lado del servidor. Por
-   eso `PruebaBase` cierra sesión al terminar cada caso.
+   eso `PruebaBase` cierra sesión al terminar cada caso y, además:
+   - guarda el token de la sesión en `resultados/ultima-sesion.token`;
+   - si el cierre desde la pantalla falla, cierra la sesión **llamando al API**;
+   - al empezar la siguiente ejecución cierra la sesión que hubiera quedado
+     abierta con ese token (`liberarSesionPendiente`).
+
    **Consecuencia: hace falta un usuario por tester y uno exclusivo para CI**; no
-   se puede ejecutar en paralelo con el mismo usuario.
+   se puede ejecutar en paralelo con el mismo usuario. Si aun así queda bloqueado
+   (se cortó la ejecución y se borró la carpeta `resultados/`), solo lo libera
+   desarrollo/DBA invalidando la sesión.
 2. **Cada perfil ve menús distintos.** Con `user-agency` solo hay *Inicio* y
    *Expediente*: los casos de Usuarios, Catálogos, Tasas, Reportes, Dashboard,
    Costos y Cuotas se reportan **OMITIDOS con el motivo** (`SkipException`), no
@@ -228,24 +254,30 @@ Un defecto **no se oculta cambiando la expectativa**: se etiqueta y se documenta
 | `LoginPruebas` | PF_CP_001–004, VAL_001–004, DEF_01 |
 | `NavegacionPruebas` | PF_CP_008, 009, 010, 046, 101, 108, 147, 151, 153, 159, SEG_001 |
 | `ValidacionesDeCamposPruebas` | PF_CP_111–114 (plantilla para los ~35 del tipo) |
-| `CatalogosPruebas` | PF_CP_047–093 (plantilla que recorre los 8 catálogos) |
+| `CatalogosPruebas` | PF_CP_047–093 (plantilla que recorre los catálogos de `amex.catalogos`) |
+
+**Catálogos:** la lista esperada está en `amex.catalogos` y hoy es la de
+PF_CP_046 (Nacionalidades, Profesiones, Campaña, Código de país, Productos, Días
+festivos y Versiones). Si un catálogo no aparece, el caso falla indicando **qué
+catálogos sí muestra hoy** la aplicación, para distinguir un cambio de nombre de
+un defecto. `PF_CP_046` valida la lista completa de una sola vez.
 
 ## 8. Resultado de la última ejecución
 
-`mvn test -Dsuite=regresion` con el usuario `user-agency` en DEV:
+`mvn test -Dsuite=regresion` con el usuario `admin-centurion` en QA:
 
 ```
-Tests run: 31, Failures: 0, Errors: 0, Skipped: 17
+Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-- **14 correctos**: login completo, Inicio (gráfica y tabla), Expediente y las
-  validaciones de Nombre, DNI y Apellidos.
-- **17 omitidos**: 16 porque el perfil `user-agency` no tiene esos menús
-  (Usuarios, Catálogos y sus 8 catálogos, Tasas, Reportes, Dashboard, Costos,
-  Cuotas) y 1 por la sesión al recargar en la pantalla de Usuarios.
-- Excluidos de la regresión: `DEF_01` (defecto abierto: el login rechaza correos
-  válidos con `+`) y `PF_CP_114` (el campo CUIL acepta 13 caracteres y la matriz
-  espera 11: falta confirmar la regla).
+Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
+validaciones de Nombre/DNI/Apellidos y los 7 catálogos. Con un perfil sin todos
+los permisos (por ejemplo `user-agency`) los casos de los menús que no ve se
+reportan **OMITIDOS con el motivo**, no como falla.
+
+Excluidos de la regresión: `DEF_01` (defecto abierto: el login rechaza correos
+válidos con `+`) y `PF_CP_114` (el campo CUIL acepta 13 caracteres y la matriz
+espera 11: falta confirmar la regla).
 
 ## 9. Integración continua
 
