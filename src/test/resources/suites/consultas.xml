@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  Ola 3: consultas de solo lectura (Usuarios, Expediente, Catalogos, Tasas,
+  Costos, Reportes y Dashboard). Ningun caso crea ni modifica informacion.
+
+  Ejecutar:  mvn test -Dsuite=consultas
+-->
+<suite name="Consultas AMEX PF - ola 3" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+  </listeners>
+
+  <test name="Consultas de solo lectura">
+    <groups>
+      <run>
+        <include name="consultas"/>
+        <exclude name="escribe_datos"/>
+        <!-- Estos dos grupos fallan a proposito: documentan una diferencia entre la
+             matriz y la aplicacion. Para revisarlos:
+             mvn test -Dgroups=defecto_conocido  |  mvn test -Dgroups=regla_por_confirmar -->
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+      </run>
+    </groups>
+    <packages>
+      <package name="com.amex.pf.pruebas"/>
+    </packages>
+  </test>
+</suite>

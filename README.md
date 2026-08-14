@@ -92,6 +92,9 @@ mvn test -Dsuite=humo
 # Regresión funcional: todos los casos de solo lectura
 mvn test -Dsuite=regresion
 
+# Consultas (ola 3): Usuarios, Expediente, Catálogos, Tasas, Costos, Reportes y Dashboard
+mvn test -Dsuite=consultas
+
 # Un solo módulo
 mvn test -Dsuite=login
 
@@ -145,18 +148,28 @@ amex-pf-selenium/
     │   │   ├── PaginaLogin.java
     │   │   ├── PaginaPrincipal.java
     │   │   ├── PaginaSolicitudes.java
-    │   │   └── PaginaCatalogos.java
+    │   │   ├── PaginaCatalogos.java
+    │   │   ├── PaginaUsuarios.java
+    │   │   ├── PaginaExpediente.java
+    │   │   ├── PaginaTasas.java
+    │   │   ├── PaginaCostos.java
+    │   │   ├── PaginaReportes.java
+    │   │   └── PaginaDashboard.java
     │   ├── pruebas/                  ← LOS CASOS (esto es lo que se edita)
     │   │   ├── LoginPruebas.java
     │   │   ├── NavegacionPruebas.java
     │   │   ├── ValidacionesDeCamposPruebas.java
-    │   │   └── CatalogosPruebas.java
+    │   │   ├── CatalogosPruebas.java
+    │   │   ├── UsuariosConsultasPruebas.java
+    │   │   ├── ExpedienteConsultasPruebas.java
+    │   │   ├── CatalogosConsultasPruebas.java
+    │   │   └── TasasCostosYReportesPruebas.java
     │   └── utilidades/
     │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
     │       └── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
     └── resources/
         ├── configuracion.properties
-        └── suites/                   ← humo.xml, regresion.xml, login.xml
+        └── suites/                   ← humo.xml, regresion.xml, login.xml, consultas.xml
 ```
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
@@ -197,7 +210,7 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 | Grupo | Significado |
 |---|---|
 | `humo` | mínimo indispensable, corre en cada despliegue |
-| `login`, `navegacion`, `validaciones`, `catalogos` | por módulo de la matriz |
+| `login`, `navegacion`, `validaciones`, `catalogos`, `usuarios`, `consultas` | por módulo de la matriz |
 | `escribe_datos` | crea o modifica información (excluido de la regresión) |
 | `defecto_conocido` | falla por un defecto abierto de la aplicación |
 | `regla_por_confirmar` | la matriz y la aplicación no coinciden y falta definición |
@@ -283,6 +296,10 @@ en `resultados/evidencias/`.
 | `NavegacionPruebas` | PF_CP_008, 009, 010, 046, 101, 108, 147, 151, 153, 159, SEG_001 |
 | `ValidacionesDeCamposPruebas` | PF_CP_111–114 (plantilla para los ~35 del tipo) |
 | `CatalogosPruebas` | PF_CP_047–093 (plantilla que recorre los catálogos de `amex.catalogos`) |
+| `UsuariosConsultasPruebas` | PF_CP_026, 028, 029, 030 |
+| `ExpedienteConsultasPruebas` | PF_CP_109, 128, 129 |
+| `CatalogosConsultasPruebas` | PF_CP_047, 049, 050, 054, 056, 057, 061, 063, 064, 065, 069, 071, 072, 076, 078, 079, 080, 081, 085, 087, 088, 089, 093, 095, 096, 097 |
+| `TasasCostosYReportesPruebas` | PF_CP_102, 104, 105, 148, 156, 160 |
 
 **Catálogos:** la lista esperada está en `amex.catalogos` y hoy es la de
 PF_CP_046 (Nacionalidades, Profesiones, Campaña, Código de país, Productos, Días
@@ -290,22 +307,46 @@ festivos y Versiones). Si un catálogo no aparece, el caso falla indicando **qu�
 catálogos sí muestra hoy** la aplicación, para distinguir un cambio de nombre de
 un defecto. `PF_CP_046` valida la lista completa de una sola vez.
 
+## 7.1 Ola 3 — consultas de solo lectura
+
+La suite `consultas` cubre solo lectura: **nunca** se presiona GUARDAR, ACEPTAR,
+EDITAR DATOS, ACTUALIZAR, AGREGAR, DICTAMINAR ni DEVOLVER. Los modales de alta se
+abren únicamente para revisar campos, máximos y calendario, y se cierran con
+CANCELAR o con la X.
+
+Los datos con los que se filtra (nombre de usuario, DNI de la solicitud) se toman
+de la propia tabla, así la suite funciona en cualquier ambiente sin datos semilla
+fijos.
+
+Pendientes de negocio que esta ola dejó documentados (etiquetados y **fuera** de
+la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
+`-Dgroups=regla_por_confirmar`):
+
+| Caso | Qué dice la matriz | Qué hace la aplicación |
+|---|---|---|
+| `PF_CP_063` | Código de Campaña admite 250 caracteres | admite más de 250 (la propia matriz ya lo anota) |
+| `PF_CP_071` | Código de país admite 100 caracteres | admite 10 (un código real no necesita 100: ¿se corrige la matriz?) |
+| `PF_CP_095`, `PF_CP_096` | Versiones tiene un campo Fecha con calendario | Versiones tiene Descripción y Valor; el calendario es de Días festivos |
+| `PF_CP_148` | muestra el costo del producto por año y mes | QA responde *"No se han registrado los costos"*: falta el dato semilla, el caso se reporta OMITIDO |
+
 ## 8. Resultado de la última ejecución
 
-`mvn test -Dsuite=regresion` con el usuario `admin-centurion` en QA:
+Con el usuario `admin-centurion` en QA:
 
 ```
-Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
+mvn test -Dsuite=consultas   →  Tests run: 35, Failures: 0, Errors: 0, Skipped: 1
+mvn test -Dsuite=regresion   →  Tests run: 65, Failures: 0, Errors: 0, Skipped: 1
 ```
 
+El único omitido es `PF_CP_148` por falta de costos cargados en el ambiente.
 Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
-validaciones de Nombre/DNI/Apellidos y los 7 catálogos. Con un perfil sin todos
-los permisos (por ejemplo `user-agency`) los casos de los menús que no ve se
-reportan **OMITIDOS con el motivo**, no como falla.
+validaciones de Nombre/DNI/Apellidos, los 7 catálogos y todas las consultas de la
+ola 3. Con un perfil sin todos los permisos (por ejemplo `user-agency`) los casos
+de los menús que no ve se reportan **OMITIDOS con el motivo**, no como falla.
 
 Excluidos de la regresión: `DEF_01` (defecto abierto: el login rechaza correos
-válidos con `+`) y `PF_CP_114` (el campo CUIL acepta 13 caracteres y la matriz
-espera 11: falta confirmar la regla).
+válidos con `+`), `PF_CP_114` (el campo CUIL acepta 13 caracteres y la matriz
+espera 11) y los cuatro pendientes de la sección 7.1.
 
 ## 9. Integración continua
 

@@ -105,8 +105,9 @@ public class ReporteEnConsolaListener implements ITestListener {
         List<String> valores = new ArrayList<>();
         for (Object dato : datos) {
             String valor = String.valueOf(dato);
-            // Los selectores no aportan nada al reporte del tester.
-            if (dato instanceof By) {
+            // Los selectores y las listas de valores esperados no aportan nada al
+            // reporte del tester.
+            if (dato instanceof By || dato instanceof Object[]) {
                 continue;
             }
             if (esId(valor)) {
