@@ -7,13 +7,17 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
+import com.amex.pf.base.Configuracion;
+
 /**
- * Pantalla de Usuarios, solo consultas: tabla, filtro y detalle.
+ * Pantalla de Usuarios: consultas de la tabla, filtro y detalle, y el formulario
+ * "Agregar usuario" (PF_CP_011 a PF_CP_021).
  *
- * No se usan datos semilla fijos: el dato con el que se filtra se toma de la
- * propia tabla, asi la prueba sirve en cualquier ambiente.
+ * Solo lectura: se escribe en los campos y se leen las listas, pero nunca se
+ * presiona GUARDAR REGISTRO, asi que no se crean usuarios. El dato con el que se
+ * filtra se toma de la propia tabla, asi la prueba sirve en cualquier ambiente.
  */
-public class PaginaUsuarios extends PaginaBase {
+public class PaginaUsuarios extends PaginaFormulario {
 
     /** Columna de la tabla (0 = Numero de empleado, 1 = Nombre, 2 = Apellidos...). */
     public static final int COLUMNA_NOMBRE = 1;
@@ -134,6 +138,46 @@ public class PaginaUsuarios extends PaginaBase {
     public PaginaUsuarios cerrarElDetalle() {
         cerrarModalSiEstaAbierto();
         esperarQueDesaparezca(Selectores.MODAL);
+        return this;
+    }
+
+    /** Areas que debe mostrar la lista, configurables en amex.usuario.areas. */
+    public static String[] areasEsperadas() {
+        return Configuracion.lista("amex.usuario.areas");
+    }
+
+    /** Tipos de usuario esperados, configurables en amex.usuario.tipos. */
+    public static String[] tiposDeUsuarioEsperados() {
+        return Configuracion.lista("amex.usuario.tipos");
+    }
+
+    public PaginaUsuarios abrirElAltaDeUsuario() {
+        hacerClic(Selectores.USUARIOS_BOTON_AGREGAR);
+        esperarQueLaUrlContenga("users/add");
+        verVisible(Selectores.USUARIO_CAMPO_NOMBRES);
+        return this;
+    }
+
+    public List<String> areasDeLaLista() {
+        return opcionesDeLaLista(Selectores.USUARIO_LISTA_AREA);
+    }
+
+    /**
+     * Los tipos de usuario dependen del area: la lista viene vacia hasta que se
+     * elige una.
+     */
+    public List<String> tiposDeUsuarioDeLaLista(String area) {
+        elegirDeLaLista(Selectores.USUARIO_LISTA_AREA, area);
+        return opcionesDeLaLista(Selectores.USUARIO_LISTA_TIPO);
+    }
+
+    public boolean elBotonGuardarEstaDeshabilitado() {
+        return elBotonEstaDeshabilitado(Selectores.USUARIO_BOTON_GUARDAR);
+    }
+
+    public PaginaUsuarios cancelar() {
+        hacerClic(Selectores.BOTON_CANCELAR);
+        esperarQueLaUrlYaNoContenga("users/add");
         return this;
     }
 }

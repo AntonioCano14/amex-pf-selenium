@@ -98,6 +98,9 @@ mvn test -Dsuite=consultas
 # Un solo módulo
 mvn test -Dsuite=login
 
+# Ola 2: validaciones de campos (Solicitudes y alta de usuario)
+mvn test -Dsuite=validaciones
+
 # Ver el navegador mientras corre
 mvn test -Dsuite=login -Damex.headless=false
 
@@ -145,6 +148,7 @@ amex-pf-selenium/
     │   ├── paginas/                  ← PAGE OBJECTS (una clase por pantalla)
     │   │   ├── Selectores.java           ← TODOS los selectores, en un solo lugar
     │   │   ├── PaginaBase.java           ← esperas y acciones reutilizables
+    │   │   ├── PaginaFormulario.java      ← longitud, tipo de carácter, obligatorios
     │   │   ├── PaginaLogin.java
     │   │   ├── PaginaPrincipal.java
     │   │   ├── PaginaSolicitudes.java
@@ -160,6 +164,7 @@ amex-pf-selenium/
     │   │   ├── NavegacionPruebas.java
     │   │   ├── ValidacionesDeCamposPruebas.java
     │   │   ├── CatalogosPruebas.java
+    │   │   ├── UsuariosValidacionesPruebas.java
     │   │   ├── UsuariosConsultasPruebas.java
     │   │   ├── ExpedienteConsultasPruebas.java
     │   │   ├── CatalogosConsultasPruebas.java
@@ -169,7 +174,8 @@ amex-pf-selenium/
     │       └── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
     └── resources/
         ├── configuracion.properties
-        └── suites/                   ← humo.xml, regresion.xml, login.xml, consultas.xml
+        └── suites/                   ← humo.xml, regresion.xml, login.xml,
+                                         validaciones.xml, consultas.xml
 ```
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
@@ -184,6 +190,14 @@ Se agrega **un renglón** en el `@DataProvider`, sin escribir lógica:
 ```java
 {"PF_CP_115 Telefono", Selectores.SOLICITUDES_CAMPO_TELEFONO, 10, "numeros"},
 ```
+
+Hay tres tablas de este tipo en la ola 2:
+
+| Tabla | Para qué sirve | Dónde está |
+|---|---|---|
+| `camposConMaximo` | máximo de caracteres de un campo | `ValidacionesDeCamposPruebas` |
+| `camposQueFiltranCaracteres` | qué caracteres deja escribir un campo | `ValidacionesDeCamposPruebas` |
+| `camposDeTexto` | máximo, tipo de carácter y obligatoriedad del alta de usuario | `UsuariosValidacionesPruebas` |
 
 ### Caso nuevo distinto
 
@@ -294,7 +308,8 @@ en `resultados/evidencias/`.
 |---|---|
 | `LoginPruebas` | PF_CP_001–004, VAL_001–004, DEF_01 |
 | `NavegacionPruebas` | PF_CP_008, 009, 010, 046, 101, 108, 147, 151, 153, 159, SEG_001 |
-| `ValidacionesDeCamposPruebas` | PF_CP_111–114 (plantilla para los ~35 del tipo) |
+| `ValidacionesDeCamposPruebas` | PF_CP_111–120 (Solicitudes: longitudes, tipo de carácter, fecha, dirección, PEP) |
+| `UsuariosValidacionesPruebas` | PF_CP_011–019 y 021 (alta de usuario: listas, longitudes, obligatorios, formato de correo, teléfonos) |
 | `CatalogosPruebas` | PF_CP_047–093 (plantilla que recorre los catálogos de `amex.catalogos`) |
 | `UsuariosConsultasPruebas` | PF_CP_026, 028, 029, 030 |
 | `ExpedienteConsultasPruebas` | PF_CP_109, 128, 129 |
@@ -329,24 +344,44 @@ la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
 | `PF_CP_095`, `PF_CP_096` | Versiones tiene un campo Fecha con calendario | Versiones tiene Descripción y Valor; el calendario es de Días festivos |
 | `PF_CP_148` | muestra el costo del producto por año y mes | QA responde *"No se han registrado los costos"*: falta el dato semilla, el caso se reporta OMITIDO |
 
+## 7.2 Diferencias entre la matriz y el ambiente QA (ola 2)
+
+| Caso | La matriz dice | La aplicación en QA hace | Cómo quedó |
+|---|---|---|---|
+| PF_CP_012 | el área es *Ventas* | el área es *CENTURION* | la lista esperada se configura en `amex.usuario.areas` |
+| PF_CP_013 | 5 tipos de usuario (Administrador Apex, Supervisor AXP, Usuario AXP, Supervisor Agencia, Usuario Agencia) | 2 tipos (*Administrador Centurion*, *Usuario Centurion*), y la lista se llena **después** de elegir el área | la lista esperada se configura en `amex.usuario.tipos` |
+| PF_CP_018 | teléfono móvil solo numérico | acepta letras (`abc12de345`) | **DEF_02**, grupo `defecto_conocido` (excluido de la regresión) |
+| PF_CP_114 | CUIL de 11 caracteres | se muestra con máscara `20-12345678-9`: 13 caracteres = 11 dígitos | resuelto: el caso cuenta dígitos y ya no es `regla_por_confirmar` |
+| PF_CP_122–123 | check *Condicionada a ingresos* en el alta de solicitud | ese check no está hoy en la pantalla | sin automatizar hasta confirmar dónde vive |
+
+Cuando negocio confirme otro área o otros tipos de usuario se ajusta
+`configuracion.properties`; cuando se corrija DEF_02 se quita el grupo
+`defecto_conocido` del caso PF_CP_018.
+
 ## 8. Resultado de la última ejecución
 
 Con el usuario `admin-centurion` en QA:
 
 ```
 mvn test -Dsuite=consultas   →  Tests run: 35, Failures: 0, Errors: 0, Skipped: 1
-mvn test -Dsuite=regresion   →  Tests run: 65, Failures: 0, Errors: 0, Skipped: 1
+mvn test -Dsuite=regresion   →  91 casos: 83 aprobados, 0 fallidos, 8 omitidos
 ```
 
-El único omitido es `PF_CP_148` por falta de costos cargados en el ambiente.
-Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
-validaciones de Nombre/DNI/Apellidos, los 7 catálogos y todas las consultas de la
-ola 3. Con un perfil sin todos los permisos (por ejemplo `user-agency`) los casos
-de los menús que no ve se reportan **OMITIDOS con el motivo**, no como falla.
+La única omisión esperada es `PF_CP_148` (falta el dato semilla de costos). Las
+otras 7 omisiones de esa corrida fueron tiempos de carga del ambiente QA (la
+pantalla no terminó de cargar en 20 s); al repetir esas clases quedaron en
+`Tests run: 9, Failures: 0, Skipped: 1`. Si el ambiente responde lento, subir
+`amex.espera` en `configuracion.properties`.
 
-Excluidos de la regresión: `DEF_01` (defecto abierto: el login rechaza correos
-válidos con `+`), `PF_CP_114` (el campo CUIL acepta 13 caracteres y la matriz
-espera 11) y los cuatro pendientes de la sección 7.1.
+Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
+validaciones de campo de la ola 2 (Solicitudes y alta de usuario), los 7 catálogos
+y todas las consultas de la ola 3. Con un perfil sin todos los permisos (por
+ejemplo `user-agency`) los casos de los menús que no ve se reportan **OMITIDOS con
+el motivo**, no como falla.
+
+Excluidos de la regresión: `DEF_01` (el login rechaza correos válidos con `+`),
+`DEF_02` (PF_CP_018: el teléfono móvil acepta letras) y los pendientes de las
+secciones 7.1 y 7.2.
 
 ## 9. Integración continua
 

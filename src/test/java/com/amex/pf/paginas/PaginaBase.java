@@ -40,14 +40,15 @@ public abstract class PaginaBase {
     }
 
     /**
-     * Hace clic y, si una imagen del menu o un overlay tapa el elemento, repite el
-     * clic por JavaScript en lugar de fallar.
+     * Clic con reintento: en esta aplicacion las imagenes del menu y los fondos de
+     * los overlays alcanzan a tapar el elemento justo cuando se hace el clic.
      */
     protected void hacerClic(By selector) {
         WebElement elemento = espera().until(ExpectedConditions.elementToBeClickable(selector));
         try {
             elemento.click();
         } catch (ElementClickInterceptedException tapado) {
+            // Segundo intento por JavaScript: no le afecta lo que este encima.
             ((JavascriptExecutor) navegador()).executeScript("arguments[0].click();", elemento);
         }
     }
@@ -80,25 +81,52 @@ public abstract class PaginaBase {
         espera().until(ExpectedConditions.urlContains(fragmento));
     }
 
+    protected void esperarQueLaUrlYaNoContenga(String fragmento) {
+        espera().until(ExpectedConditions.not(ExpectedConditions.urlContains(fragmento)));
+    }
+
+    protected void cerrarOverlayConEscape() {
+        navegador().findElement(By.tagName("body")).sendKeys(Keys.ESCAPE);
+    }
+
+    /** El "loader" de la aplicacion cubre la pantalla y tapa los controles. */
+    protected void esperarQueTermineDeCargar() {
+        espera().until(navegador -> navegador.findElements(Selectores.CARGANDO).isEmpty());
+    }
+
     protected void esperarQueDesaparezca(By selector) {
         espera().until(ExpectedConditions.invisibilityOfElementLocated(selector));
     }
 
     /**
-     * Texto leido del DOM. Angular Material agrega las opciones a la pantalla antes
-     * de terminar de pintarlas, y getText() devolveria vacio en ese instante.
+     * Los modales de esta aplicacion no se cierran con Escape y su fondo tapa el
+     * resto de la pantalla (por ejemplo el menu para salir): se cierran con su
+     * propio boton.
      */
-    protected String textoDe(WebElement elemento) {
-        Object valor = ((JavascriptExecutor) navegador())
-                .executeScript("return arguments[0].textContent;", elemento);
-        return valor == null ? "" : valor.toString().replace('\u00a0', ' ').trim();
+    protected void cerrarModalSiEstaAbierto() {
+        if (!estaVisible(Selectores.MODAL, 2)) {
+            return;
+        }
+        for (By boton : List.of(Selectores.botonDelModal("CANCELAR"),
+                Selectores.botonDelModal("Cancelar"),
+                Selectores.MODAL_BOTON_CERRAR,
+                Selectores.botonDelModal("ACEPTAR"),
+                Selectores.botonDelModal("Aceptar"))) {
+            List<WebElement> botones = buscarTodos(boton);
+            if (!botones.isEmpty()) {
+                botones.get(0).click();
+                esperarQueDesaparezca(Selectores.MODAL);
+                return;
+            }
+        }
+        cerrarOverlayConEscape();
     }
 
-    protected String textoDe(By selector) {
-        return textoDe(verVisible(selector));
-    }
-
-    /** Abre una lista desplegable y espera a que todas sus opciones tengan texto. */
+    /**
+     * Abre una lista desplegable (mat-select) y devuelve sus opciones. Mientras el
+     * panel se abre las opciones ya existen pero todavia sin texto, por eso se
+     * espera a que todas tengan contenido.
+     */
     protected List<WebElement> abrirLista(By lista) {
         esperarQueSeCierrenLasListas();
         hacerClic(lista);
@@ -113,6 +141,7 @@ public abstract class PaginaBase {
         });
     }
 
+    /** Opciones que muestra hoy una lista desplegable (la deja cerrada). */
     protected List<String> opcionesDeLaLista(By lista) {
         List<String> nombres = abrirLista(lista).stream().map(this::textoDe).toList();
         cerrarOverlayConEscape();
@@ -120,42 +149,37 @@ public abstract class PaginaBase {
         return nombres;
     }
 
-    protected void elegirDeLaLista(By lista, String valor) {
-        List<WebElement> opciones = abrirLista(lista);
-        WebElement elegida = opciones.stream()
-                .filter(opcion -> textoDe(opcion).equalsIgnoreCase(valor.trim()))
+    /**
+     * Las opciones de una lista que se acaba de cerrar siguen unos instantes en el
+     * DOM: si no se espera, se leen mezcladas con las de la siguiente lista.
+     */
+    protected void esperarQueSeCierrenLasListas() {
+        espera().until(navegador ->
+                navegador.findElements(Selectores.OPCIONES_DE_LISTA).isEmpty());
+    }
+
+    /** Elige una opcion de una lista desplegable comparando el texto exacto. */
+    protected void elegirDeLaLista(By lista, String opcion) {
+        WebElement elegida = abrirLista(lista).stream()
+                .filter(disponible -> textoDe(disponible).equalsIgnoreCase(opcion.trim()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "La lista no tiene la opcion \"" + valor + "\". Muestra hoy: "
-                                + opciones.stream().map(this::textoDe).toList() + "."));
+                        "La lista no tiene la opcion \"" + opcion + "\"."));
         ((JavascriptExecutor) navegador())
                 .executeScript("arguments[0].scrollIntoView({block: 'center'});", elegida);
         elegida.click();
         esperarQueSeCierrenLasListas();
     }
 
-    /** Las opciones de una lista siguen en la pantalla un instante despues de cerrarla. */
-    protected void esperarQueSeCierrenLasListas() {
-        espera().until(navegador ->
-                navegador.findElements(Selectores.OPCIONES_DE_LISTA).isEmpty());
+    /** Texto leido del DOM, para no depender de animaciones ni del scroll. */
+    protected String textoDe(WebElement elemento) {
+        Object valor = ((JavascriptExecutor) navegador())
+                .executeScript("return arguments[0].textContent;", elemento);
+        return valor == null ? "" : valor.toString().replace('\u00a0', ' ').trim();
     }
 
-    /** Un modal abierto tapa el menu de salir: se cierra antes de terminar el caso. */
-    protected void cerrarModalSiEstaAbierto() {
-        if (!estaVisible(Selectores.MODAL, 2)) {
-            return;
-        }
-        for (By boton : List.of(Selectores.botonDelModal("CANCELAR"),
-                Selectores.MODAL_BOTON_CERRAR,
-                Selectores.botonDelModal("ACEPTAR"))) {
-            List<WebElement> botones = buscarTodos(boton);
-            if (!botones.isEmpty()) {
-                botones.get(0).click();
-                esperarQueDesaparezca(Selectores.MODAL);
-                return;
-            }
-        }
-        cerrarOverlayConEscape();
+    protected String textoDe(By selector) {
+        return textoDe(verVisible(selector));
     }
 
     /** Filas con datos de la tabla (la primera fila de estas tablas es el encabezado). */
@@ -193,10 +217,6 @@ public abstract class PaginaBase {
                 return null;
             }
         });
-    }
-
-    protected void cerrarOverlayConEscape() {
-        navegador().findElement(By.tagName("body")).sendKeys(Keys.ESCAPE);
     }
 
     protected String urlBase() {

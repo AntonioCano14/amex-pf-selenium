@@ -40,9 +40,14 @@ public final class Selectores {
         return By.xpath("//mat-dialog-container//button[contains(., '" + etiqueta + "')]");
     }
 
-    /** Los campos de los modales no tienen formcontrolname: se ubican por su placeholder. */
-    public static By campoDelModal(String placeholder) {
+    /** Algunos campos de los modales solo se distinguen por su placeholder. */
+    public static By campoDelModalPorPlaceholder(String placeholder) {
         return By.cssSelector("mat-dialog-container input[placeholder='" + placeholder + "']");
+    }
+
+    public static By campoDelModal(String formcontrolname) {
+        return By.cssSelector(
+                "mat-dialog-container input[formcontrolname='" + formcontrolname + "']");
     }
 
     // ------------------------------------------------------- Encabezado y menu
@@ -55,6 +60,8 @@ public final class Selectores {
     }
 
     // -------------------------------------------------------- Pantallas comunes
+    /** Capa de carga de la aplicacion: mientras esta visible tapa los controles. */
+    public static final By CARGANDO = By.cssSelector("div.loader");
     public static final By TABLA = By.tagName("table");
     public static final By FILAS_DE_TABLA = By.cssSelector("table tr");
     /** Las tablas no usan tbody: las filas con datos son las que tienen celdas td. */
@@ -149,6 +156,37 @@ public final class Selectores {
             By.cssSelector("input[formcontrolname='lastName']");
     public static final By SOLICITUDES_CAMPO_DNI = By.cssSelector("input[formcontrolname='dni']");
     public static final By SOLICITUDES_CAMPO_CUIL = By.cssSelector("input[formcontrolname='cuil']");
+    public static final By SOLICITUDES_CAMPO_FECHA_NACIMIENTO =
+            By.cssSelector("input[formcontrolname='birthDate']");
+    /** La direccion es un textarea, no un input. */
+    public static final By SOLICITUDES_CAMPO_DIRECCION =
+            By.cssSelector("textarea[formcontrolname='street']");
+    public static final By SOLICITUDES_CALENDARIO = By.tagName("mat-datepicker-toggle");
+    public static final By SOLICITUDES_OPCIONES_PEP = By.cssSelector(
+            "mat-radio-group[formcontrolname='hasPoliticallyExposedApplicants'] mat-radio-button");
+    public static final By SOLICITUDES_OPCION_PEP_MARCADA = By.cssSelector(
+            "mat-radio-group[formcontrolname='hasPoliticallyExposedApplicants'] "
+                    + "mat-radio-button.mat-radio-checked");
+    public static final By SOLICITUDES_BOTON_AGREGAR_PEP = boton("AGREGAR ADICIONAL");
+
+    // --------------------------------------------------------------- Usuarios
+    public static final By USUARIOS_BOTON_AGREGAR = boton("AGREGAR USUARIO");
+    public static final By USUARIO_LISTA_AREA = By.cssSelector("mat-select[formcontrolname='area']");
+    public static final By USUARIO_LISTA_TIPO = By.cssSelector("mat-select[formcontrolname='rol']");
+    public static final By USUARIO_CAMPO_NOMBRES = By.cssSelector("input[formcontrolname='name']");
+    public static final By USUARIO_CAMPO_APELLIDOS =
+            By.cssSelector("input[formcontrolname='lastName']");
+    public static final By USUARIO_CAMPO_CARGO =
+            By.cssSelector("input[formcontrolname='position']");
+    public static final By USUARIO_CAMPO_CORREO = By.cssSelector("input[formcontrolname='email']");
+    public static final By USUARIO_LISTA_CODIGO_PAIS =
+            By.cssSelector("mat-select[formcontrolname='phoneCountryCode']");
+    public static final By USUARIO_CAMPO_TELEFONO_MOVIL =
+            By.cssSelector("input[formcontrolname='mobilePhone']");
+    public static final By USUARIO_CAMPO_TELEFONO_FIJO =
+            By.cssSelector("input[formcontrolname='phone']");
+    public static final By USUARIO_BOTON_GUARDAR = boton("GUARDAR REGISTRO");
+    public static final By BOTON_CANCELAR = boton("CANCELAR");
 
     // --------------------------------------------------------------- Catalogos
     public static final By CATALOGO_LISTA =

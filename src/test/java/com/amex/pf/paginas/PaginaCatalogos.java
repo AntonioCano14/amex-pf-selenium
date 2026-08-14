@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
@@ -19,7 +18,7 @@ public class PaginaCatalogos extends PaginaBase {
      * coma) o con -Damex.catalogos="Nacionalidades,Profesiones,...".
      */
     public static String[] catalogosEsperados() {
-        return Configuracion.obtener("amex.catalogos").split("\\s*,\\s*");
+        return Configuracion.lista("amex.catalogos");
     }
 
     /** Abre la pantalla y espera a que la aplicacion termine de navegar. */
@@ -48,30 +47,16 @@ public class PaginaCatalogos extends PaginaBase {
     }
 
     public PaginaCatalogos abrirCatalogo(String nombre) {
-        List<WebElement> opciones = abrirLista(Selectores.CATALOGO_LISTA);
-
-        WebElement opcion = opciones.stream()
-                .filter(elemento -> textoDe(elemento).equalsIgnoreCase(nombre.trim()))
-                .findFirst()
-                .orElse(null);
-
-        if (opcion == null) {
+        try {
+            elegirDeLaLista(Selectores.CATALOGO_LISTA, nombre);
+        } catch (IllegalArgumentException noExiste) {
             // Mensaje util para el tester: dice que catalogos SI existen hoy.
-            String disponibles = opciones.stream().map(this::textoDe)
-                    .reduce((a, b) -> a + " | " + b).orElse("(ninguno)");
             Assert.fail("El catalogo \"" + nombre + "\" no aparece en la lista. "
-                    + "La aplicacion muestra hoy: " + disponibles + ". "
+                    + "La aplicacion muestra hoy: " + catalogosDeLaLista() + ". "
                     + "Si el catalogo cambio de nombre o ya no existe, actualice "
                     + "amex.catalogos en configuracion.properties.");
         }
-
-        // La lista puede tener mas opciones de las que caben en pantalla.
-        ((JavascriptExecutor) navegador())
-                .executeScript("arguments[0].scrollIntoView({block: 'center'});", opcion);
-        opcion.click();
-        esperarQueSeCierrenLasListas();
-
-        Assert.assertEquals(textoDe(Selectores.CATALOGO_LISTA), nombre,
+        Assert.assertEquals(textoDe(verVisible(Selectores.CATALOGO_LISTA)), nombre,
                 "La lista no quedo en el catalogo \"" + nombre + "\".");
         return this;
     }
@@ -104,7 +89,7 @@ public class PaginaCatalogos extends PaginaBase {
 
     public PaginaCatalogos elModalDebeTenerLosCampos(String... placeholders) {
         for (String placeholder : placeholders) {
-            Assert.assertTrue(estaVisible(Selectores.campoDelModal(placeholder), 10),
+            Assert.assertTrue(estaVisible(Selectores.campoDelModalPorPlaceholder(placeholder), 10),
                     "El modal no muestra el campo \"" + placeholder + "\". Muestra: "
                             + textoDe(Selectores.MODAL).replace("\n", " | ") + ".");
         }
@@ -152,7 +137,7 @@ public class PaginaCatalogos extends PaginaBase {
     }
 
     public String valorQueQuedaEnElCampo(String placeholder, String texto) {
-        By campo = Selectores.campoDelModal(placeholder);
+        By campo = Selectores.campoDelModalPorPlaceholder(placeholder);
         escribir(campo, texto);
         String valor = valorDe(campo);
         return valor == null ? "" : valor;
@@ -165,7 +150,7 @@ public class PaginaCatalogos extends PaginaBase {
     }
 
     public boolean tieneElCampo(String placeholder) {
-        return estaVisible(Selectores.campoDelModal(placeholder), 3);
+        return estaVisible(Selectores.campoDelModalPorPlaceholder(placeholder), 3);
     }
 
     public boolean tieneCalendario() {

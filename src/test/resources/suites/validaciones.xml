@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  OLA 2: validaciones de campo de Solicitudes (pantalla Expediente) y del alta de
+  usuario (pantalla Usuarios). Todos los casos son de solo lectura: escriben en
+  los campos pero no presionan GUARDAR REGISTRO ni CREAR SOLICITUD.
+
+  Excluye:
+  - defecto_conocido    : falla por un defecto abierto de la aplicacion (DEF_02)
+  - regla_por_confirmar : la matriz y la aplicacion no coinciden
+
+  Ejecutar:  mvn test -Dsuite=validaciones
+  Con el navegador visible:  mvn test -Dsuite=validaciones -Damex.headless=false
+-->
+<suite name="Ola 2 - Validaciones de campos AMEX PF" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+  </listeners>
+
+  <test name="Validaciones de campos">
+    <groups>
+      <run>
+        <include name="validaciones"/>
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.amex.pf.pruebas.ValidacionesDeCamposPruebas"/>
+      <class name="com.amex.pf.pruebas.UsuariosValidacionesPruebas"/>
+    </classes>
+  </test>
+</suite>
