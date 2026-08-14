@@ -101,6 +101,9 @@ mvn test -Dsuite=login
 # Ola 2: validaciones de campos (Solicitudes y alta de usuario)
 mvn test -Dsuite=validaciones
 
+# Ola 4: descargas (Excel de Usuarios/Solicitudes/Reportes, layout y ZIP)
+mvn test -Dsuite=descargas
+
 # Ver el navegador mientras corre
 mvn test -Dsuite=login -Damex.headless=false
 
@@ -168,14 +171,17 @@ amex-pf-selenium/
     │   │   ├── UsuariosConsultasPruebas.java
     │   │   ├── ExpedienteConsultasPruebas.java
     │   │   ├── CatalogosConsultasPruebas.java
-    │   │   └── TasasCostosYReportesPruebas.java
+    │   │   ├── TasasCostosYReportesPruebas.java
+    │   │   └── DescargasPruebas.java
     │   └── utilidades/
     │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
-    │       └── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
+    │       ├── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
+    │       └── Descargas.java            ← espera el archivo y lee Excel y ZIP
     └── resources/
         ├── configuracion.properties
         └── suites/                   ← humo.xml, regresion.xml, login.xml,
-                                         validaciones.xml, consultas.xml
+                                         validaciones.xml, consultas.xml,
+                                         descargas.xml
 ```
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
@@ -225,6 +231,7 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 |---|---|
 | `humo` | mínimo indispensable, corre en cada despliegue |
 | `login`, `navegacion`, `validaciones`, `catalogos`, `usuarios`, `consultas` | por módulo de la matriz |
+| `descargas` | archivos que entrega la aplicación (Excel, layout y ZIP) |
 | `escribe_datos` | crea o modifica información (excluido de la regresión) |
 | `defecto_conocido` | falla por un defecto abierto de la aplicación |
 | `regla_por_confirmar` | la matriz y la aplicación no coinciden y falta definición |
@@ -315,6 +322,7 @@ en `resultados/evidencias/`.
 | `ExpedienteConsultasPruebas` | PF_CP_109, 128, 129 |
 | `CatalogosConsultasPruebas` | PF_CP_047, 049, 050, 054, 056, 057, 061, 063, 064, 065, 069, 071, 072, 076, 078, 079, 080, 081, 085, 087, 088, 089, 093, 095, 096, 097 |
 | `TasasCostosYReportesPruebas` | PF_CP_102, 104, 105, 148, 156, 160 |
+| `DescargasPruebas` | PF_CP_022, 027, 125, 127, 142, 143, 154, 155, 157, 158 (archivos que descarga la aplicación) |
 
 **Catálogos:** la lista esperada está en `amex.catalogos` y hoy es la de
 PF_CP_046 (Nacionalidades, Profesiones, Campaña, Código de país, Productos, Días
@@ -358,30 +366,67 @@ Cuando negocio confirme otro área o otros tipos de usuario se ajusta
 `configuracion.properties`; cuando se corrija DEF_02 se quita el grupo
 `defecto_conocido` del caso PF_CP_018.
 
+## 7.3 Ola 4 — descargas de archivos
+
+La suite `descargas` revisa los archivos que entrega la aplicación: el Excel de
+Usuarios, el layout de carga masiva, el Excel de Solicitudes, los dos ZIP de una
+solicitud firmada y los reportes en Excel. No modifica información: solo descarga
+y abre lo descargado (Apache POI para los Excel, `ZipFile` para los ZIP).
+
+Cómo funciona el mantenimiento: **las columnas esperadas de cada archivo están en
+`configuracion.properties`** (`amex.excel.*`, `amex.zip.*`). El caso verifica que
+estén todas las columnas de la matriz; si el archivo trae columnas extra no falla,
+las informa en el mensaje. Cuando negocio cambie un layout se ajusta la propiedad,
+sin tocar código.
+
+Otros detalles del ambiente:
+
+- `resultados/descargas` se vacía antes de cada caso, así nunca se aprueba un caso
+  con el archivo de una corrida anterior.
+- Los reportes de totales (URL y WhatsApp) exigen fecha inicio y fin: se eligen con
+  el calendario según `amex.reportes.anio/mes.inicio|fin`. El ambiente **limita el
+  rango** (no acepta un año completo abierto): si se pide un mes fuera del rango el
+  caso falla con un mensaje que lo explica.
+- `PF_CP_142`/`PF_CP_143`: la fila de la tabla muestra dos botones ZIP solo cuando
+  la solicitud está firmada — el primero baja el expediente completo
+  (`expedient.zip`) y el segundo el ZIP Griffin (`expedient-<referencia>.zip`, solo
+  `identity_validation.pdf` y `signed_pdf.pdf`). Si ninguna solicitud del ambiente
+  los ofrece, el caso se reporta OMITIDO en lugar de fallar.
+- `PF_CP_023`–`PF_CP_025` (subir el layout de usuarios) **no** entran en esta ola:
+  escriben datos y hacen falta los layouts oficiales válido e inválido.
+
+Pendientes que esta ola dejó documentados (etiquetados y **fuera** de la suite y de
+la regresión; para verlos: `mvn test -Dtest=DescargasPruebas`):
+
+| Caso | Qué dice la matriz | Qué hace la aplicación en QA |
+|---|---|---|
+| `PF_CP_022` | el layout trae *Teléfono móvil* y *Teléfono Fijo* | trae dos columnas llamadas *Teléfono móvil* → **DEF_03** |
+| `PF_CP_125` | Expediente tiene un botón *Importar* para carga masiva de solicitudes | la pantalla solo tiene *Exportar*: falta confirmar si se quitó o depende de otro permiso |
+| `PF_CP_127` | el Excel de solicitudes empieza con *Id_Solicitud* | no exporta esa columna (sí las otras 10) |
+| `PF_CP_154` | el reporte general empieza con *Id* | no exporta *Id*, y entrega 32 columnas (13 más que la matriz: CUIL, Fecha firma, RENAPER, Navegador…) |
+
 ## 8. Resultado de la última ejecución
 
 Con el usuario `admin-centurion` en QA:
 
 ```
-mvn test -Dsuite=consultas   →  Tests run: 35, Failures: 0, Errors: 0, Skipped: 1
-mvn test -Dsuite=regresion   →  91 casos: 83 aprobados, 0 fallidos, 8 omitidos
+mvn test -Dsuite=descargas   →  Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+mvn test -Dsuite=regresion   →  97 casos: 96 aprobados, 0 fallidos, 1 omitido
 ```
 
-La única omisión esperada es `PF_CP_148` (falta el dato semilla de costos). Las
-otras 7 omisiones de esa corrida fueron tiempos de carga del ambiente QA (la
-pantalla no terminó de cargar en 20 s); al repetir esas clases quedaron en
-`Tests run: 9, Failures: 0, Skipped: 1`. Si el ambiente responde lento, subir
-`amex.espera` en `configuracion.properties`.
+La única omisión es `PF_CP_148` (falta el dato semilla de costos). Si el ambiente
+responde lento, subir `amex.espera` en `configuracion.properties`.
 
 Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
-validaciones de campo de la ola 2 (Solicitudes y alta de usuario), los 7 catálogos
-y todas las consultas de la ola 3. Con un perfil sin todos los permisos (por
-ejemplo `user-agency`) los casos de los menús que no ve se reportan **OMITIDOS con
-el motivo**, no como falla.
+validaciones de campo de la ola 2 (Solicitudes y alta de usuario), los 7 catálogos,
+todas las consultas de la ola 3 y las descargas de la ola 4. Con un perfil sin todos
+los permisos (por ejemplo `user-agency`) los casos de los menús que no ve se
+reportan **OMITIDOS con el motivo**, no como falla.
 
 Excluidos de la regresión: `DEF_01` (el login rechaza correos válidos con `+`),
-`DEF_02` (PF_CP_018: el teléfono móvil acepta letras) y los pendientes de las
-secciones 7.1 y 7.2.
+`DEF_02` (PF_CP_018: el teléfono móvil acepta letras), `DEF_03` (PF_CP_022: el
+layout de usuarios no trae *Teléfono Fijo*) y los pendientes de las secciones 7.1,
+7.2 y 7.3.
 
 ## 9. Integración continua
 

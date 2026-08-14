@@ -57,6 +57,10 @@ public final class FabricaDeNavegador {
         Map<String, Object> preferencias = new HashMap<>();
         preferencias.put("download.default_directory", CARPETA_DESCARGAS.toString());
         preferencias.put("download.prompt_for_download", false);
+        preferencias.put("download.directory_upgrade", true);
+        // Sin esto Chrome bloquea la segunda descarga de la misma pantalla.
+        preferencias.put("profile.default_content_setting_values.automatic_downloads", 1);
+        preferencias.put("safebrowsing.enabled", true);
         opciones.setExperimentalOption("prefs", preferencias);
         return new ChromeDriver(opciones);
     }

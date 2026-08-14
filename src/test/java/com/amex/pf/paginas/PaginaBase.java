@@ -53,6 +53,15 @@ public abstract class PaginaBase {
         }
     }
 
+    /** Clic sobre un elemento ya localizado, con el mismo reintento por JavaScript. */
+    protected void hacerClic(WebElement elemento) {
+        try {
+            elemento.click();
+        } catch (ElementClickInterceptedException tapado) {
+            ((JavascriptExecutor) navegador()).executeScript("arguments[0].click();", elemento);
+        }
+    }
+
     protected void escribir(By selector, String texto) {
         WebElement campo = verVisible(selector);
         campo.clear();
@@ -217,6 +226,62 @@ public abstract class PaginaBase {
                 return null;
             }
         });
+    }
+
+    /**
+     * Elige el dia 1 del mes indicado en el calendario numero {@code indice} de la
+     * pantalla (0 = el primero). El calendario de esta aplicacion abre en vista de
+     * dias o de anios segun el campo, por eso se revisa que muestra antes de elegir.
+     */
+    protected void elegirElPrimerDiaDelMes(int indiceDelCalendario, String anio, String mes) {
+        hacerClic(Selectores.CALENDARIO_BOTONES, indiceDelCalendario);
+        verVisible(Selectores.CALENDARIO_ABIERTO);
+        if (!hayCeldaDelCalendario(anio)) {
+            hacerClic(Selectores.CALENDARIO_PERIODO);
+        }
+        // La vista de anios muestra 24 anios por pagina: puede hacer falta avanzar.
+        for (int pagina = 0; pagina < 3 && !hayCeldaDelCalendario(anio); pagina++) {
+            hacerClic(Selectores.CALENDARIO_SIGUIENTE);
+        }
+        clicEnLaCeldaDelCalendario(anio);
+        clicEnLaCeldaDelCalendario(mes);
+        clicEnLaCeldaDelCalendario("1");
+        esperarQueDesaparezca(Selectores.CALENDARIO_ABIERTO);
+    }
+
+    private boolean hayCeldaDelCalendario(String texto) {
+        return buscarTodos(Selectores.CALENDARIO_DIAS).stream()
+                .anyMatch(celda -> textoDelCalendario(celda).equals(texto));
+    }
+
+    private void clicEnLaCeldaDelCalendario(String texto) {
+        WebElement celda = espera().until(navegador -> navegador
+                .findElements(Selectores.CALENDARIO_DIAS).stream()
+                .filter(candidata -> textoDelCalendario(candidata).equals(texto))
+                .findFirst()
+                .orElse(null));
+        if (celda.getDomAttribute("aria-disabled") != null
+                && celda.getDomAttribute("aria-disabled").equals("true")) {
+            throw new IllegalStateException("El calendario no permite elegir \"" + texto
+                    + "\": el rango de fechas del reporte esta limitado. Ajuste "
+                    + "amex.reportes.* en configuracion.properties.");
+        }
+        celda.click();
+    }
+
+    /** Los meses del calendario se muestran abreviados y con punto ("ENE."). */
+    private String textoDelCalendario(WebElement celda) {
+        String texto = textoDe(celda).toUpperCase();
+        return texto.endsWith(".") ? texto.substring(0, texto.length() - 1) : texto;
+    }
+
+    /** Clic en uno de los elementos que comparten selector (por ejemplo dos calendarios). */
+    protected void hacerClic(By selector, int indice) {
+        List<WebElement> elementos = espera().until(navegador -> {
+            List<WebElement> encontrados = navegador.findElements(selector);
+            return encontrados.size() > indice ? encontrados : null;
+        });
+        elementos.get(indice).click();
     }
 
     protected String urlBase() {

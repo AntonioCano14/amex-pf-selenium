@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  OLA 4: archivos que entrega la aplicacion (Excel de Usuarios, Expediente y
+  Reportes, layout de carga masiva y los ZIP de una solicitud firmada).
+  Ningun caso modifica informacion: solo descarga y revisa el contenido.
+
+  Los archivos quedan en resultados/descargas (esa carpeta no se sube al
+  repositorio).
+
+  Excluye:
+  - defecto_conocido    : falla por un defecto abierto de la aplicacion (DEF_03)
+  - regla_por_confirmar : la matriz y la aplicacion no coinciden
+
+  Ejecutar:  mvn test -Dsuite=descargas
+  Con el navegador visible:  mvn test -Dsuite=descargas -Damex.headless=false
+-->
+<suite name="Ola 4 - Descargas AMEX PF" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+  </listeners>
+
+  <test name="Descargas de archivos">
+    <groups>
+      <run>
+        <include name="descargas"/>
+        <exclude name="escribe_datos"/>
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.amex.pf.pruebas.DescargasPruebas"/>
+    </classes>
+  </test>
+</suite>

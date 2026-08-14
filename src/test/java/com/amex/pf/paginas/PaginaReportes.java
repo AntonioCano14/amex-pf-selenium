@@ -5,9 +5,11 @@ import java.util.List;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
+import com.amex.pf.base.Configuracion;
+
 /**
- * Pantalla de Reportes, solo consultas: tipos de reporte y filtros. No se presiona
- * GENERAR REPORTE (la descarga de archivos es de una ola posterior).
+ * Pantalla de Reportes: tipos de reporte, filtros y generacion de los reportes en
+ * Excel (ola 4). Generar un reporte no modifica informacion: solo descarga.
  */
 public class PaginaReportes extends PaginaBase {
 
@@ -47,6 +49,47 @@ public class PaginaReportes extends PaginaBase {
                 valoresDeLosFiltros().stream().allMatch(String::isBlank));
         Assert.assertTrue(valoresDeLosFiltros().stream().allMatch(String::isBlank),
                 "Limpiar filtros dejo valores: " + valoresDeLosFiltros() + ".");
+        return this;
+    }
+
+    // ------------------------------------------------------- Descargas (ola 4)
+
+    public PaginaReportes elegirElTipoDeReporte(String tipo) {
+        elegirDeLaLista(Selectores.REPORTES_LISTA_TIPO, tipo);
+        return this;
+    }
+
+    public PaginaReportes filtrarPorDni(String dni) {
+        escribir(Selectores.REPORTES_CAMPO_DNI, dni);
+        return this;
+    }
+
+    /**
+     * Los reportes de totales exigen fecha inicio y fin: el boton Generar reporte
+     * queda deshabilitado hasta que se eligen las dos en el calendario.
+     */
+    public PaginaReportes elegirElRangoDeFechas() {
+        elegirElPrimerDiaDelMes(0, Configuracion.obtener("amex.reportes.anio.inicio"),
+                Configuracion.obtener("amex.reportes.mes.inicio"));
+        elegirElPrimerDiaDelMes(1, Configuracion.obtener("amex.reportes.anio.fin"),
+                Configuracion.obtener("amex.reportes.mes.fin"));
+        return this;
+    }
+
+    public PaginaReportes generarElReporte() {
+        espera().until(navegador ->
+                navegador.findElement(Selectores.REPORTES_BOTON_GENERAR).isEnabled());
+        hacerClic(Selectores.REPORTES_BOTON_GENERAR);
+        return this;
+    }
+
+    /** Texto del popup de la aplicacion (por ejemplo "No se encontraron resultados."). */
+    public String mensajeDelPopup() {
+        return textoDe(Selectores.MODAL);
+    }
+
+    public PaginaReportes aceptarElPopup() {
+        cerrarModalSiEstaAbierto();
         return this;
     }
 

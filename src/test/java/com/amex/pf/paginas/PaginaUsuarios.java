@@ -180,4 +180,37 @@ public class PaginaUsuarios extends PaginaFormulario {
         esperarQueLaUrlYaNoContenga("users/add");
         return this;
     }
+
+    // ------------------------------------------------------- Descargas (ola 4)
+
+    public PaginaUsuarios exportarAExcel() {
+        esperarQueTermineDeCargar();
+        hacerClic(Selectores.USUARIOS_BOTON_EXPORTAR);
+        return this;
+    }
+
+    public PaginaUsuarios abrirLaCargaMasiva() {
+        hacerClic(Selectores.USUARIOS_BOTON_CARGA_MASIVA);
+        esperarQueLaUrlContenga("users/upload");
+        verVisible(Selectores.CARGA_MASIVA_BOTON_LAYOUT);
+        return this;
+    }
+
+    public PaginaUsuarios laCargaMasivaDebePermitirElegirArchivo() {
+        Assert.assertFalse(buscarTodos(Selectores.CARGA_MASIVA_CAMPO_ARCHIVO).isEmpty(),
+                "La pantalla de carga masiva no ofrece donde cargar el documento.");
+        return this;
+    }
+
+    public PaginaUsuarios descargarElLayout() {
+        hacerClic(Selectores.CARGA_MASIVA_BOTON_LAYOUT);
+        return this;
+    }
+
+    /** Sale de la carga masiva sin subir nada. */
+    public PaginaUsuarios salirDeLaCargaMasiva() {
+        hacerClic(Selectores.boton("Cancelar"));
+        esperarQueLaUrlYaNoContenga("users/upload");
+        return this;
+    }
 }

@@ -196,6 +196,25 @@ public final class Selectores {
     public static final By CATALOGO_VER_DETALLE = By.cssSelector("table tr td img.eye");
     public static final By CATALOGO_BOTON_EDITAR = botonDelModal("EDITAR DATOS");
 
+    // ----------------------------------------------------- Descargas (ola 4)
+    public static final By USUARIOS_BOTON_EXPORTAR = boton("Exportar a excel");
+    public static final By USUARIOS_BOTON_CARGA_MASIVA = boton("CARGA MASIVA");
+    public static final By CARGA_MASIVA_BOTON_LAYOUT = boton("Descargar layout");
+    public static final By CARGA_MASIVA_CAMPO_ARCHIVO = By.cssSelector("input[type='file']");
+    public static final By SOLICITUDES_BOTON_EXPORTAR = boton("Exportar");
+    public static final By SOLICITUDES_BOTON_IMPORTAR = boton("Importar");
+    /** Los dos botones de descarga de una fila: expediente completo y ZIP Griffin. */
+    public static final By ZIP_DE_LA_FILA =
+            By.cssSelector("td.action-column button img[src*='zip-download']");
+    public static final By REPORTES_BOTON_GENERAR = boton("Generar reporte");
+    public static final By REPORTES_CAMPO_FECHA_INICIO =
+            By.cssSelector("input[formcontrolname='dateInitial']");
+    public static final By REPORTES_CAMPO_FECHA_FIN =
+            By.cssSelector("input[formcontrolname='dateEnd']");
+    public static final By CALENDARIO_BOTONES = By.cssSelector("mat-datepicker-toggle button");
+    public static final By CALENDARIO_PERIODO = By.cssSelector(".mat-calendar-period-button");
+    public static final By CALENDARIO_SIGUIENTE = By.cssSelector(".mat-calendar-next-button");
+
     public static final By OPCIONES_DE_LISTA = By.tagName("mat-option");
 
     public static By opcionDeLista(String nombre) {
