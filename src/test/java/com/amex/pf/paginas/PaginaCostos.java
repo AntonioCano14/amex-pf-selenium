@@ -69,12 +69,12 @@ public class PaginaCostos extends PaginaBase {
     private void elegirLaPrimeraOpcion(WebElement lista) {
         esperarQueSeCierrenLasListas();
         esperarQueTermineDeCargar();
-        lista.click();
+        hacerClic(lista);
         List<WebElement> opciones = espera().until(navegador -> {
             List<WebElement> encontradas = navegador.findElements(Selectores.OPCIONES_DE_LISTA);
             return encontradas.isEmpty() ? null : encontradas;
         });
-        opciones.get(0).click();
+        hacerClic(opciones.get(0));
         esperarQueSeCierrenLasListas();
     }
 }

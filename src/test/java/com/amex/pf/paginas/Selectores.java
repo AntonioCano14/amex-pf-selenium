@@ -173,6 +173,9 @@ public final class Selectores {
     public static final By USUARIOS_BOTON_AGREGAR = boton("AGREGAR USUARIO");
     public static final By USUARIO_LISTA_AREA = By.cssSelector("mat-select[formcontrolname='area']");
     public static final By USUARIO_LISTA_TIPO = By.cssSelector("mat-select[formcontrolname='rol']");
+    public static final By USUARIO_CAMPO_NUMERO_DE_EMPLEADO =
+            By.cssSelector("input[formcontrolname='employeeNumber']");
+
     public static final By USUARIO_CAMPO_NOMBRES = By.cssSelector("input[formcontrolname='name']");
     public static final By USUARIO_CAMPO_APELLIDOS =
             By.cssSelector("input[formcontrolname='lastName']");
@@ -195,6 +198,35 @@ public final class Selectores {
     /** Ojo de la columna Ver de la tabla del catalogo. */
     public static final By CATALOGO_VER_DETALLE = By.cssSelector("table tr td img.eye");
     public static final By CATALOGO_BOTON_EDITAR = botonDelModal("EDITAR DATOS");
+
+    // ------------------------------------------------- Altas y bajas (ola 5)
+    /** Paginas de la tabla: la tabla de un catalogo no tiene filtro de busqueda. */
+    public static final By PAGINA_DE_LA_TABLA = By.cssSelector("button.item");
+    /** Icono de la columna Inactivar de la fila de un catalogo. */
+    public static final By CATALOGO_INACTIVAR_DE_LA_FILA =
+            By.cssSelector("img[src*='delete']");
+    public static final By CATALOGO_BOTON_ACTIVAR = botonDelModal("ACTIVAR REGISTRO");
+    public static final By MODAL_BOTON_ACEPTAR_MAYUSCULAS = botonDelModal("ACEPTAR");
+    public static final By MODAL_CAMPO_ARCHIVO =
+            By.cssSelector("mat-dialog-container input[type='file']");
+
+    /** Detalle de un usuario (modal): botones de edicion, contrasena y activacion. */
+    public static final By USUARIO_DETALLE_BOTON_EDITAR = botonDelModal("EDITAR DATOS");
+    public static final By USUARIO_DETALLE_BOTON_GUARDAR = botonDelModal("GUARDAR");
+    public static final By USUARIO_DETALLE_BOTON_CONTRASENA = botonDelModal("GENERAR CONTRASEÑA");
+    public static final By USUARIO_DETALLE_BOTON_CANCELAR = botonDelModal("CANCELAR");
+    public static final By USUARIO_DETALLE_BOTON_ACTIVAR = botonDelModal("ACTIVAR USUARIO");
+    public static final By USUARIO_DETALLE_BOTON_COPIAR_CONTRASENA =
+            botonDelModal("Copiar contraseña");
+    public static final By USUARIO_DETALLE_CAMPO_NOMBRES = campoDelModal("name");
+
+    /** Boton Cancelar de los popup de confirmacion (los del detalle son CANCELAR). */
+    public static final By MODAL_BOTON_CANCELAR = botonDelModal("Cancelar");
+
+    public static final By USUARIO_DETALLE_CAMPO_CARGO = campoDelModal("position");
+    /** Icono de la columna Desactivar de la fila de un usuario. */
+    public static final By DESACTIVAR_DE_LA_FILA =
+            By.cssSelector("td.action-column button img[src*='disable-user']");
 
     // ----------------------------------------------------- Descargas (ola 4)
     public static final By USUARIOS_BOTON_EXPORTAR = boton("Exportar a excel");

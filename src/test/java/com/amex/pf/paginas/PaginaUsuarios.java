@@ -8,20 +8,27 @@ import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
 import com.amex.pf.base.Configuracion;
+import com.amex.pf.datos.UsuarioDePrueba;
 
 /**
  * Pantalla de Usuarios: consultas de la tabla, filtro y detalle, y el formulario
  * "Agregar usuario" (PF_CP_011 a PF_CP_021).
  *
- * Solo lectura: se escribe en los campos y se leen las listas, pero nunca se
- * presiona GUARDAR REGISTRO, asi que no se crean usuarios. El dato con el que se
- * filtra se toma de la propia tabla, asi la prueba sirve en cualquier ambiente.
+ * Los metodos de consulta y de validacion (olas 1 a 4) no guardan nada: escriben
+ * en los campos y leen las listas, pero nunca presionan GUARDAR REGISTRO.
+ *
+ * Los metodos de la seccion "Altas, ediciones y bajas (ola 5)" SI escriben en el
+ * ambiente: solo deben usarse desde pruebas del grupo escribe_datos y siempre con
+ * los datos de UsuarioDePrueba, que llevan el prefijo de automatizacion.
  */
 public class PaginaUsuarios extends PaginaFormulario {
 
     /** Columna de la tabla (0 = Numero de empleado, 1 = Nombre, 2 = Apellidos...). */
     public static final int COLUMNA_NOMBRE = 1;
     public static final int COLUMNA_CORREO = 3;
+
+    /** Ultimo mensaje que mostro la aplicacion en un popup (alta, edicion, baja). */
+    private String ultimoMensaje = "";
 
     /** Abre la pantalla y espera a que la aplicacion termine de navegar. */
     public PaginaUsuarios abrir() {
@@ -179,6 +186,225 @@ public class PaginaUsuarios extends PaginaFormulario {
         hacerClic(Selectores.BOTON_CANCELAR);
         esperarQueLaUrlYaNoContenga("users/add");
         return this;
+    }
+
+    // ------------------------------------------- Altas, ediciones y bajas (ola 5)
+
+    /** Llena el formulario de alta con los datos de prueba, sin guardar todavia. */
+    public PaginaUsuarios llenarElAltaDeUsuario(UsuarioDePrueba usuario) {
+        elegirDeLaLista(Selectores.USUARIO_LISTA_AREA, UsuarioDePrueba.area());
+        elegirDeLaLista(Selectores.USUARIO_LISTA_TIPO, UsuarioDePrueba.tipoDeUsuario());
+        escribir(Selectores.USUARIO_CAMPO_NUMERO_DE_EMPLEADO, usuario.numeroDeEmpleado());
+        escribir(Selectores.USUARIO_CAMPO_NOMBRES, usuario.nombres());
+        escribir(Selectores.USUARIO_CAMPO_APELLIDOS, usuario.apellidos());
+        escribir(Selectores.USUARIO_CAMPO_CARGO, usuario.cargo());
+        escribir(Selectores.USUARIO_CAMPO_CORREO, usuario.correo());
+        elegirDeLaLista(Selectores.USUARIO_LISTA_CODIGO_PAIS, UsuarioDePrueba.codigoDePais());
+        escribir(Selectores.USUARIO_CAMPO_TELEFONO_MOVIL, usuario.telefonoMovil());
+        escribir(Selectores.USUARIO_CAMPO_TELEFONO_FIJO, usuario.telefonoFijo());
+        return this;
+    }
+
+    /**
+     * PF_CP_020: presiona GUARDAR REGISTRO y devuelve el mensaje con el que la
+     * aplicacion confirma el alta.
+     */
+    public String guardarElRegistro() {
+        hacerClic(Selectores.USUARIO_BOTON_GUARDAR);
+        String mensaje = estaVisible(Selectores.MODAL, 15) ? aceptarElPopupYDevolverSuTexto() : "";
+        esperarQueLaUrlYaNoContenga("users/add");
+        esperarQueTermineDeCargar();
+        return mensaje;
+    }
+
+    /** Filtra la tabla por nombre y espera a que responda. */
+    public PaginaUsuarios buscarPorNombre(String nombre) {
+        esperarQueTermineDeCargar();
+        if (!estaVisible(Selectores.USUARIOS_FILTRO_NOMBRE, 3)) {
+            abrirElFiltro();
+        }
+        escribir(Selectores.USUARIOS_FILTRO_NOMBRE, nombre);
+        hacerClic(Selectores.BOTON_BUSCAR);
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    /** La tabla debe mostrar al usuario con el estatus indicado (Activo/Inactivo). */
+    public PaginaUsuarios laTablaDebeMostrarAlUsuario(String texto, String estatus) {
+        String fila = espera().until(navegador -> {
+            WebElement encontrada = filaDelUsuarioSiExiste(texto);
+            if (encontrada == null) {
+                return null;
+            }
+            String contenido = textoDe(encontrada);
+            return estatusDeLaFila(contenido).equals(estatus.toUpperCase()) ? contenido : null;
+        });
+        Assert.assertEquals(estatusDeLaFila(fila), estatus.toUpperCase(),
+                "El usuario \"" + texto + "\" deberia estar " + estatus
+                        + " y la tabla muestra: " + fila.replace("\n", " ") + ".");
+        return this;
+    }
+
+    /** Abre el detalle (ojo) del usuario indicado. */
+    public PaginaUsuarios abrirElDetalleDelUsuario(String texto) {
+        WebElement ojo = leerAunqueLaTablaSeRefresque(() -> {
+            WebElement fila = filaDelUsuario(texto);
+            List<WebElement> ojos = fila.findElements(Selectores.VER_DETALLE_DE_LA_FILA);
+            Assert.assertFalse(ojos.isEmpty(),
+                    "La fila de \"" + texto + "\" no muestra el boton Ver detalle.");
+            return ojos.get(0);
+        });
+        hacerClic(ojo);
+        verVisible(Selectores.MODAL);
+        // El detalle se abre vacio y la aplicacion lo llena despues de consultar al
+        // servicio: sin esta espera se leerian los datos y el estatus del modal en
+        // blanco (aparece como "Inactivo" mientras carga).
+        espera().until(navegador -> {
+            String nombre = valorDe(Selectores.USUARIO_DETALLE_CAMPO_NOMBRES);
+            return nombre == null || nombre.isBlank() ? null : nombre;
+        });
+        return this;
+    }
+
+    /** PF_CP_039: cambia el cargo desde el detalle y guarda. */
+    public PaginaUsuarios editarElCargoDelDetalle(String cargo) {
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_EDITAR);
+        verVisible(Selectores.USUARIO_DETALLE_BOTON_GUARDAR);
+        escribir(Selectores.USUARIO_DETALLE_CAMPO_CARGO, cargo);
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_GUARDAR);
+        // La aplicacion cierra el detalle y muestra el aviso "Usuario actualizado",
+        // que solo se cierra con la "X".
+        ultimoMensaje = aceptarElPopupYDevolverSuTexto();
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    /** Comprueba el cargo que quedo guardado en el detalle (PF_CP_039). */
+    public PaginaUsuarios elCargoDelDetalleDebeSer(String cargo) {
+        String guardado = espera().until(navegador -> {
+            String valor = valorDe(Selectores.USUARIO_DETALLE_CAMPO_CARGO);
+            return valor == null || valor.isBlank() ? null : valor;
+        });
+        Assert.assertEquals(guardado, cargo,
+                "El detalle no muestra el cargo que se guardo.");
+        return this;
+    }
+
+    /**
+     * PF_CP_040: presiona GENERAR CONTRASEÑA. La aplicacion muestra la contrasena
+     * nueva dentro del mismo detalle; la prueba solo comprueba que aparecio con su
+     * boton "Copiar contraseña" y NUNCA lee ni imprime el valor de la contrasena.
+     */
+    public PaginaUsuarios generarLaContrasena() {
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_CONTRASENA);
+        Assert.assertTrue(estaVisible(Selectores.USUARIO_DETALLE_BOTON_COPIAR_CONTRASENA, 20),
+                "GENERAR CONTRASEÑA no mostro la contrasena nueva en el detalle del usuario.");
+        ultimoMensaje = "El detalle muestra la contrasena nueva y el boton Copiar contraseña.";
+        return this;
+    }
+
+    public boolean elDetalleEstaAbierto() {
+        return estaVisible(Selectores.MODAL, 3);
+    }
+
+    /** PF_CP_041: sale del detalle con CANCELAR, sin guardar. */
+    public PaginaUsuarios cancelarElDetalle() {
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_CANCELAR);
+        esperarQueDesaparezca(Selectores.MODAL);
+        return this;
+    }
+
+    /** PF_CP_042: presiona Desactivar en la fila del usuario y deja el popup abierto. */
+    public PaginaUsuarios desactivarAlUsuario(String texto) {
+        WebElement icono = leerAunqueLaTablaSeRefresque(() -> {
+            WebElement fila = filaDelUsuario(texto);
+            List<WebElement> iconos = fila.findElements(Selectores.DESACTIVAR_DE_LA_FILA);
+            Assert.assertFalse(iconos.isEmpty(),
+                    "La fila de \"" + texto + "\" no muestra el boton Desactivar.");
+            return iconos.get(0);
+        });
+        hacerClic(icono);
+        verVisible(Selectores.MODAL);
+        return this;
+    }
+
+    /** Texto del popup abierto (para comprobar el mensaje de confirmacion). */
+    public String textoDelPopup() {
+        return textoDe(Selectores.MODAL).replace("\n", " ");
+    }
+
+    /** PF_CP_043: acepta el popup de desactivacion. */
+    public PaginaUsuarios aceptarElPopup() {
+        ultimoMensaje = aceptarElPopupYDevolverSuTexto();
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    /** PF_CP_044: cancela el popup de desactivacion, el usuario sigue activo. */
+    public PaginaUsuarios cancelarElPopup() {
+        hacerClic(Selectores.MODAL_BOTON_CANCELAR);
+        esperarQueDesaparezca(Selectores.MODAL);
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    /** PF_CP_045: activa al usuario desde su detalle. */
+    public PaginaUsuarios activarAlUsuario(String texto) {
+        abrirElDetalleDelUsuario(texto);
+        Assert.assertTrue(estaVisible(Selectores.USUARIO_DETALLE_BOTON_ACTIVAR, 10),
+                "El detalle del usuario inactivo no muestra el boton ACTIVAR USUARIO. "
+                        + "El detalle muestra: " + textoDelDetalle().replace("\n", " ") + ".");
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_ACTIVAR);
+        ultimoMensaje = aceptarElPopupYDevolverSuTexto();
+        esperarQueDesaparezca(Selectores.MODAL);
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    /** Ultimo mensaje que mostro la aplicacion en un popup. */
+    public String ultimoMensaje() {
+        return ultimoMensaje;
+    }
+
+    /**
+     * Deja el ambiente como estaba: desactiva al usuario creado por la prueba. Se
+     * filtra por su nombre (lo unico que acepta el filtro) y se ubica su fila por el
+     * numero de empleado.
+     */
+    public PaginaUsuarios desactivarSiQuedoActivo(String nombre, String numeroDeEmpleado) {
+        String texto = numeroDeEmpleado;
+        try {
+            abrir();
+            buscarPorNombre(nombre);
+            WebElement fila = filaDelUsuarioSiExiste(texto);
+            if (fila == null || !estatusDeLaFila(textoDe(fila)).equals("ACTIVO")) {
+                return this;
+            }
+            desactivarAlUsuario(texto);
+            aceptarElPopup();
+        } catch (RuntimeException noSePudo) {
+            System.out.println("            Aviso: no se pudo desactivar a \"" + texto
+                    + "\" al terminar (" + noSePudo.getClass().getSimpleName() + ").");
+        }
+        return this;
+    }
+
+    private WebElement filaDelUsuario(String texto) {
+        WebElement fila = espera().until(navegador -> filaDelUsuarioSiExiste(texto));
+        Assert.assertNotNull(fila,
+                "La tabla de usuarios no muestra ninguna fila con \"" + texto + "\".");
+        return fila;
+    }
+
+    private WebElement filaDelUsuarioSiExiste(String texto) {
+        try {
+            return filasConDatos().stream()
+                    .filter(fila -> textoDe(fila).toUpperCase().contains(texto.toUpperCase()))
+                    .findFirst()
+                    .orElse(null);
+        } catch (RuntimeException sinTabla) {
+            return null;
+        }
     }
 
     // ------------------------------------------------------- Descargas (ola 4)

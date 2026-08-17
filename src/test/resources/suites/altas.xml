@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  OLA 5: altas, ediciones, bajas y activaciones (Usuarios y los siete catalogos).
+
+  ATENCION: esta es la unica suite que ESCRIBE en el ambiente. Crea un usuario y un
+  elemento por catalogo, los edita, los inactiva y los vuelve a activar; al terminar
+  los deja INACTIVOS (la aplicacion no permite borrarlos).
+
+  Todos los datos creados llevan el prefijo amex.datos.prefijo (ZZAUTOQA) y un
+  numero distinto en cada ejecucion, para reconocerlos en las pantallas.
+
+  No debe ejecutarse al mismo tiempo que otra suite con el mismo usuario: la
+  aplicacion solo permite una sesion activa por usuario.
+
+  Ejecutar:  mvn test -Dsuite=altas
+  Con el navegador visible:  mvn test -Dsuite=altas -Damex.headless=false
+-->
+<suite name="Ola 5 - Altas y bajas AMEX PF" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+  </listeners>
+
+  <test name="Altas, ediciones y bajas">
+    <groups>
+      <run>
+        <include name="ola5"/>
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.amex.pf.pruebas.UsuariosAltasPruebas"/>
+      <class name="com.amex.pf.pruebas.CatalogosAltasPruebas"/>
+      <class name="com.amex.pf.pruebas.TasasCftPruebas"/>
+    </classes>
+  </test>
+</suite>

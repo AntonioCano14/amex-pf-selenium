@@ -104,6 +104,9 @@ mvn test -Dsuite=validaciones
 # Ola 4: descargas (Excel de Usuarios/Solicitudes/Reportes, layout y ZIP)
 mvn test -Dsuite=descargas
 
+# Ola 5: altas, ediciones y bajas. OJO: es la unica suite que ESCRIBE datos
+mvn test -Dsuite=altas
+
 # Ver el navegador mientras corre
 mvn test -Dsuite=login -Damex.headless=false
 
@@ -148,6 +151,9 @@ amex-pf-selenium/
     │   │   ├── Configuracion.java        ← URL, usuario, navegador, esperas
     │   │   ├── FabricaDeNavegador.java   ← creación del navegador
     │   │   └── PruebaBase.java           ← abre y cierra el navegador por caso
+    │   ├── datos/                    ← DATOS DE PRUEBA de la ola 5
+    │   │   ├── ElementoDeCatalogo.java    ← qué se escribe en cada catálogo
+    │   │   └── UsuarioDePrueba.java       ← datos del usuario que se da de alta
     │   ├── paginas/                  ← PAGE OBJECTS (una clase por pantalla)
     │   │   ├── Selectores.java           ← TODOS los selectores, en un solo lugar
     │   │   ├── PaginaBase.java           ← esperas y acciones reutilizables
@@ -172,16 +178,20 @@ amex-pf-selenium/
     │   │   ├── ExpedienteConsultasPruebas.java
     │   │   ├── CatalogosConsultasPruebas.java
     │   │   ├── TasasCostosYReportesPruebas.java
-    │   │   └── DescargasPruebas.java
+    │   │   ├── DescargasPruebas.java
+    │   │   ├── UsuariosAltasPruebas.java     ← ola 5 (escribe datos)
+    │   │   ├── CatalogosAltasPruebas.java    ← ola 5 (escribe datos)
+    │   │   └── TasasCftPruebas.java
     │   └── utilidades/
     │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
     │       ├── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
     │       └── Descargas.java            ← espera el archivo y lee Excel y ZIP
     └── resources/
         ├── configuracion.properties
+        ├── datos/                    ← imagen.png que piden algunos catálogos
         └── suites/                   ← humo.xml, regresion.xml, login.xml,
                                          validaciones.xml, consultas.xml,
-                                         descargas.xml
+                                         descargas.xml, altas.xml
 ```
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
@@ -323,6 +333,9 @@ en `resultados/evidencias/`.
 | `CatalogosConsultasPruebas` | PF_CP_047, 049, 050, 054, 056, 057, 061, 063, 064, 065, 069, 071, 072, 076, 078, 079, 080, 081, 085, 087, 088, 089, 093, 095, 096, 097 |
 | `TasasCostosYReportesPruebas` | PF_CP_102, 104, 105, 148, 156, 160 |
 | `DescargasPruebas` | PF_CP_022, 027, 125, 127, 142, 143, 154, 155, 157, 158 (archivos que descarga la aplicación) |
+| `UsuariosAltasPruebas` | PF_CP_020, 039–045 (alta, detalle, contraseña, desactivar y activar) — **escribe datos** |
+| `CatalogosAltasPruebas` | PF_CP_048–100 en los 7 catálogos: alta, edición, inactivar y activar — **escribe datos** |
+| `TasasCftPruebas` | PF_CP_107 (Costo Financiero Total: solo números, máximo 9 caracteres) |
 
 **Catálogos:** la lista esperada está en `amex.catalogos` y hoy es la de
 PF_CP_046 (Nacionalidades, Profesiones, Campaña, Código de país, Productos, Días
@@ -405,13 +418,67 @@ la regresión; para verlos: `mvn test -Dtest=DescargasPruebas`):
 | `PF_CP_127` | el Excel de solicitudes empieza con *Id_Solicitud* | no exporta esa columna (sí las otras 10) |
 | `PF_CP_154` | el reporte general empieza con *Id* | no exporta *Id*, y entrega 32 columnas (13 más que la matriz: CUIL, Fecha firma, RENAPER, Navegador…) |
 
+## 7.4 Ola 5 — altas, ediciones y bajas (escribe datos)
+
+La suite `altas` es la **única que escribe en el ambiente**. Todo lo que crea lleva
+el prefijo `amex.datos.prefijo` (hoy `ZZAUTOQA`) más el número de la ejecución, así
+se reconoce de un vistazo qué registros son de automatización.
+
+```bash
+mvn test -Dsuite=altas                         # los 11 casos de la ola 5
+mvn test -Dsuite=altas -Damex.headless=false   # viendo el navegador
+```
+
+Reglas de uso, importantes:
+
+- **No correrla en paralelo** con otra suite usando el mismo usuario (la aplicación
+  solo permite una sesión activa por usuario).
+- La aplicación **no permite borrar** usuarios ni elementos de catálogo: cada caso
+  termina dejando **inactivo** lo que creó (bloque `finally`), incluso si falla a la
+  mitad. Por eso el ambiente acumula registros `ZZAUTOQA …` inactivos.
+- Está **fuera de la regresión** (grupo `escribe_datos`): la regresión sigue siendo
+  de solo lectura.
+
+Qué datos usa cada catálogo está en una sola clase, `datos/ElementoDeCatalogo`
+(placeholder del campo → valor); los del usuario, en `datos/UsuarioDePrueba`. Para
+cambiar un dato de prueba se edita esa clase o estas propiedades:
+
+```properties
+amex.datos.prefijo=ZZAUTOQA
+amex.datos.correo=na-at.com
+amex.datos.usuario.tipo=Usuario Centurion
+amex.datos.usuario.codigo.pais=+549
+amex.datos.anio=2031
+amex.datos.mes=DIC
+```
+
+Comportamientos del ambiente que la ola 5 dejó documentados:
+
+| Qué se encontró | Cómo lo maneja la automatización |
+|---|---|
+| El alta de usuario **exige Número de empleado** y teléfonos de **10 dígitos** (la matriz no lo dice) | `UsuarioDePrueba` genera un número de empleado único por ejecución y teléfonos de 10 dígitos; la fila se ubica por ese número |
+| El servicio rechaza un **Código de Campaña de más de 10 caracteres** (`size must be between 0 and 10`) aunque la pantalla deje escribir más | el código generado respeta el máximo real; queda para negocio confirmar el límite |
+| El **detalle del usuario se abre vacío** y se llena después con la respuesta del servicio (mientras carga muestra "Inactivo") | se espera a que el detalle traiga los datos antes de leer su estatus o sus campos |
+| **GENERAR CONTRASEÑA muestra la contraseña en pantalla** con un botón *Copiar contraseña* (no la envía por correo) | el caso solo comprueba que apareció: **nunca** lee ni imprime el valor de la contraseña |
+| Al guardar el detalle, el aviso *Usuario actualizado* solo se cierra con la **X** | el cierre de avisos acepta ACEPTAR, Aceptar, OK o la X |
+| Los **días festivos** se identifican por su fecha y no se pueden borrar | la fecha depende de la ejecución y, si ya está ocupada, se prueba la siguiente; si no queda ninguna libre el caso se reporta OMITIDO pidiendo cambiar `amex.datos.anio`/`amex.datos.mes` |
+
+Casos de la ola 5 que **no** se automatizaron todavía, y por qué:
+
+| Caso | Motivo |
+|---|---|
+| `PF_CP_031`–`PF_CP_038` | repiten las validaciones de `PF_CP_012`–`PF_CP_019`, ya cubiertas en la ola 2 (no se duplican) |
+| `PF_CP_103`, `PF_CP_106` | modifican las **tasas vigentes** del ambiente: hace falta acordar un periodo de prueba seguro |
+| `PF_CP_110`–`PF_CP_146` (expediente) | necesitan solicitudes fixture, una por estatus, y los layouts oficiales |
+| `PF_CP_149`, `PF_CP_150`, `PF_CP_152` | Costos y Cuotas Generales afectan el cálculo de todo el ambiente: falta definir si se pueden modificar en QA |
+
 ## 8. Resultado de la última ejecución
 
 Con el usuario `admin-centurion` en QA:
 
 ```
-mvn test -Dsuite=descargas   →  Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
-mvn test -Dsuite=regresion   →  97 casos: 96 aprobados, 0 fallidos, 1 omitido
+mvn test -Dsuite=altas       →  11 casos: 11 aprobados, 0 fallidos, 0 omitidos
+mvn test -Dsuite=regresion   →  98 casos: 97 aprobados, 0 fallidos, 1 omitido
 ```
 
 La única omisión es `PF_CP_148` (falta el dato semilla de costos). Si el ambiente
@@ -419,14 +486,15 @@ responde lento, subir `amex.espera` en `configuracion.properties`.
 
 Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
 validaciones de campo de la ola 2 (Solicitudes y alta de usuario), los 7 catálogos,
-todas las consultas de la ola 3 y las descargas de la ola 4. Con un perfil sin todos
+todas las consultas de la ola 3 y las descargas de la ola 4; la ola 5 (altas y bajas)
+va aparte, en la suite `altas`, porque escribe datos. Con un perfil sin todos
 los permisos (por ejemplo `user-agency`) los casos de los menús que no ve se
 reportan **OMITIDOS con el motivo**, no como falla.
 
 Excluidos de la regresión: `DEF_01` (el login rechaza correos válidos con `+`),
 `DEF_02` (PF_CP_018: el teléfono móvil acepta letras), `DEF_03` (PF_CP_022: el
-layout de usuarios no trae *Teléfono Fijo*) y los pendientes de las secciones 7.1,
-7.2 y 7.3.
+layout de usuarios no trae *Teléfono Fijo*), la ola 5 completa (grupo
+`escribe_datos`) y los pendientes de las secciones 7.1, 7.2 y 7.3.
 
 ## 9. Integración continua
 

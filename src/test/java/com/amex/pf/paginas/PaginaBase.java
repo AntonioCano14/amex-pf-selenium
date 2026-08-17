@@ -2,6 +2,7 @@ package com.amex.pf.paginas;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.openqa.selenium.By;
@@ -132,6 +133,39 @@ public abstract class PaginaBase {
     }
 
     /**
+     * Cierra el ultimo popup abierto y devuelve su texto. Se trabaja sobre el ultimo
+     * porque los avisos se abren encima de otro modal (por ejemplo, el aviso de
+     * "Usuario actualizado" sobre el detalle del usuario). Segun el aviso, el boton
+     * es ACEPTAR, Aceptar, OK o solo la "X" (close).
+     */
+    protected String aceptarElPopupYDevolverSuTexto() {
+        WebElement popup = espera().until(navegador -> {
+            List<WebElement> modales = navegador.findElements(Selectores.MODAL);
+            if (modales.isEmpty()) {
+                return null;
+            }
+            WebElement ultimo = modales.get(modales.size() - 1);
+            return botonParaCerrar(ultimo) == null ? null : ultimo;
+        });
+        String texto = textoDe(popup).replace("\n", " ").trim();
+        hacerClic(botonParaCerrar(popup));
+        espera().until(ExpectedConditions.invisibilityOf(popup));
+        return texto;
+    }
+
+    /** Boton con el que se cierra un aviso, o null si el modal no es un aviso. */
+    private WebElement botonParaCerrar(WebElement modal) {
+        for (String etiqueta : List.of("ACEPTAR", "Aceptar", "OK", "close")) {
+            List<WebElement> botones =
+                    modal.findElements(By.xpath(".//button[contains(., '" + etiqueta + "')]"));
+            if (!botones.isEmpty()) {
+                return botones.get(0);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Abre una lista desplegable (mat-select) y devuelve sus opciones. Mientras el
      * panel se abre las opciones ya existen pero todavia sin texto, por eso se
      * espera a que todas tengan contenido.
@@ -176,7 +210,7 @@ public abstract class PaginaBase {
                         "La lista no tiene la opcion \"" + opcion + "\"."));
         ((JavascriptExecutor) navegador())
                 .executeScript("arguments[0].scrollIntoView({block: 'center'});", elegida);
-        elegida.click();
+        hacerClic(elegida);
         esperarQueSeCierrenLasListas();
     }
 
@@ -189,6 +223,18 @@ public abstract class PaginaBase {
 
     protected String textoDe(By selector) {
         return textoDe(verVisible(selector));
+    }
+
+    /**
+     * Estatus que muestra una fila: "ACTIVO" o "INACTIVO" (vacio si no lo dice).
+     * Se busca primero "INACTIVO" porque la palabra contiene a "ACTIVO".
+     */
+    protected static String estatusDeLaFila(String textoDeLaFila) {
+        String mayusculas = textoDeLaFila.toUpperCase();
+        if (mayusculas.contains("INACTIVO")) {
+            return "INACTIVO";
+        }
+        return mayusculas.contains("ACTIVO") ? "ACTIVO" : "";
     }
 
     /** Filas con datos de la tabla (la primera fila de estas tablas es el encabezado). */
@@ -229,11 +275,31 @@ public abstract class PaginaBase {
     }
 
     /**
+     * Igual que {@link #leerAunqueLaTablaSeRefresque(Supplier)} para lecturas cuyo
+     * resultado puede ser "no encontrado": ahi un null es la respuesta buena y no
+     * hay que seguir esperando.
+     */
+    protected <T> Optional<T> leerAunqueLaTablaSeRefresqueOpcional(Supplier<T> lectura) {
+        return espera().until(navegador -> {
+            try {
+                return Optional.ofNullable(lectura.get());
+            } catch (StaleElementReferenceException seRefresco) {
+                return null;
+            }
+        });
+    }
+
+    /**
      * Elige el dia 1 del mes indicado en el calendario numero {@code indice} de la
      * pantalla (0 = el primero). El calendario de esta aplicacion abre en vista de
      * dias o de anios segun el campo, por eso se revisa que muestra antes de elegir.
      */
     protected void elegirElPrimerDiaDelMes(int indiceDelCalendario, String anio, String mes) {
+        elegirElDiaDelMes(indiceDelCalendario, anio, mes, 1);
+    }
+
+    /** Igual que elegirElPrimerDiaDelMes, eligiendo el dia indicado. */
+    protected void elegirElDiaDelMes(int indiceDelCalendario, String anio, String mes, int dia) {
         hacerClic(Selectores.CALENDARIO_BOTONES, indiceDelCalendario);
         verVisible(Selectores.CALENDARIO_ABIERTO);
         if (!hayCeldaDelCalendario(anio)) {
@@ -245,7 +311,7 @@ public abstract class PaginaBase {
         }
         clicEnLaCeldaDelCalendario(anio);
         clicEnLaCeldaDelCalendario(mes);
-        clicEnLaCeldaDelCalendario("1");
+        clicEnLaCeldaDelCalendario(String.valueOf(dia));
         esperarQueDesaparezca(Selectores.CALENDARIO_ABIERTO);
     }
 
@@ -263,8 +329,8 @@ public abstract class PaginaBase {
         if (celda.getDomAttribute("aria-disabled") != null
                 && celda.getDomAttribute("aria-disabled").equals("true")) {
             throw new IllegalStateException("El calendario no permite elegir \"" + texto
-                    + "\": el rango de fechas del reporte esta limitado. Ajuste "
-                    + "amex.reportes.* en configuracion.properties.");
+                    + "\": la pantalla limita el rango de fechas. Ajuste amex.reportes.* o "
+                    + "amex.datos.* en configuracion.properties.");
         }
         celda.click();
     }
