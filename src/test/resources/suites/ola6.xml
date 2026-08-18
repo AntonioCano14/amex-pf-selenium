@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  OLA 6: estados del expediente, dictaminacion, adicionales PEP, costos y cuotas.
+
+  Solo lectura: la suite abre detalles, popups y menus, pero NUNCA confirma un
+  dictamen, NUNCA crea una solicitud y NUNCA guarda un costo ni una cuota. Los
+  popups de Aprobar/Denegar y de costos se cierran con Cancelar.
+
+  Los casos que dependen de un dato semilla (una solicitud por estatus, un costo
+  por periodo, los importes de Cuotas Generales) se reportan OMITIDOS indicando el
+  fixture que hace falta; no fallan.
+
+  Las expectativas se declaran en configuracion.properties
+  (amex.expediente.PF_CP_XXX.estatus y .habilitadas): para ajustar una regla de
+  negocio no hay que tocar codigo Java.
+
+  Ejecutar:  mvn test -Dsuite=ola6
+  Con el navegador visible:  mvn test -Dsuite=ola6 -Damex.headless=false
+-->
+<suite name="Ola 6 - Expediente, dictaminacion y costos AMEX PF" verbose="1">
+
+  <listeners>
+    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
+    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+  </listeners>
+
+  <test name="Estados del expediente, dictaminacion, PEP, costos y cuotas">
+    <groups>
+      <run>
+        <include name="ola6"/>
+        <exclude name="defecto_conocido"/>
+        <exclude name="regla_por_confirmar"/>
+        <exclude name="escribe_datos"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.amex.pf.pruebas.ExpedienteEstadosPruebas"/>
+      <class name="com.amex.pf.pruebas.ExpedienteDictamenPruebas"/>
+      <class name="com.amex.pf.pruebas.SolicitudesPepPruebas"/>
+      <class name="com.amex.pf.pruebas.CostosYCuotasPruebas"/>
+    </classes>
+  </test>
+</suite>

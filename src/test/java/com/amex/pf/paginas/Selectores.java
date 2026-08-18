@@ -249,6 +249,61 @@ public final class Selectores {
 
     public static final By OPCIONES_DE_LISTA = By.tagName("mat-option");
 
+    // -------------------------------------------- Detalle del expediente (ola 6)
+    /** Las acciones del detalle (DNI, Firma, Caratula, RENAPER, Devolver,
+     * Dictaminar) no son botones: son pestanas de Angular Material. */
+    public static final By DETALLE_PESTANAS = By.cssSelector(".mat-tab-label");
+    public static final By DETALLE_ESTATUS = By.xpath("//*[contains(text(), 'Estatus:')]");
+    /** Menu de tres puntos del detalle (Expirar, Reenviar URL, Copiar URL, ZIP). */
+    public static final By DETALLE_MENU = By.xpath("//button[contains(., 'more_vert')]");
+    public static final By MENU_ABIERTO = By.cssSelector("div.mat-menu-panel");
+    public static final By OPCIONES_DEL_MENU = By.cssSelector("div.mat-menu-panel button");
+
+    public static By opcionDelMenu(String etiqueta) {
+        return By.xpath("//div[contains(@class, 'mat-menu-panel')]//button[contains(., '"
+                + etiqueta + "')]");
+    }
+
+    /** Casilla de seleccion de una fila de la tabla de solicitudes. */
+    public static final By CASILLAS_DE_LA_TABLA = By.cssSelector("table mat-checkbox input");
+    public static final By SOLICITUDES_BOTON_APROBAR = boton("Aprobar solicitudes");
+    public static final By SOLICITUDES_BOTON_DENEGAR = boton("Denegar solicitudes");
+
+    // ------------------------------------------- Adicionales PEP (ola 6)
+    /** Tabla de adicionales PEP del formulario de alta de solicitud. */
+    public static final By PEP_TABLA = By.cssSelector("table");
+    public static final By PEP_FILAS = FILAS_CON_DATOS;
+    public static final By PEP_CAMPO_NOMBRE = campoDelModal("name");
+    public static final By PEP_CAMPO_APELLIDOS = campoDelModal("lastName");
+    public static final By PEP_CAMPO_DNI = campoDelModal("dni");
+    public static final By PEP_CAMPO_CARGO = campoDelModal("position");
+    public static final By PEP_CAMPO_RELACION = campoDelModal("relationship");
+    public static final By PEP_BOTON_ACEPTAR = botonDelModal("ACEPTAR");
+    /** Los iconos de la fila del PEP son botones con el nombre del icono. */
+    public static final By PEP_BOTON_EDITAR = boton("edit");
+    public static final By PEP_BOTON_ELIMINAR = boton("delete");
+    /** Check "Condicionada a ingresos" del alta de solicitud (PF_CP_122). */
+    public static final By SOLICITUDES_CHECKS = By.tagName("mat-checkbox");
+
+    // ---------------------------------------------------- Costos y cuotas (ola 6)
+    public static final By COSTOS_BOTON_AGREGAR = boton("Agregar costo");
+    public static final By COSTO_CAMPO_INGRESO_MINIMO = campoDelModal("minimumIncome");
+    public static final By COSTO_CAMPO_COSTO = campoDelModal("cost");
+    public static final By COSTO_CAMPO_COSTO_SIN_IMPUESTOS = campoDelModal("costWithoutTax");
+    public static final By COSTO_CAMPO_CUOTA_METAL = campoDelModal("metalCost");
+    public static final By COSTO_CAMPO_CUOTA_METAL_SIN_IMPUESTOS =
+            campoDelModal("metalCostWithoutTax");
+    public static final By COSTO_CAMPO_CUOTA_ADICIONAL = campoDelModal("additionalCost");
+    public static final By COSTO_CAMPO_CUOTA_ADICIONAL_SIN_IMPUESTOS =
+            campoDelModal("additionalCostWithoutTax");
+    public static final By COSTO_BOTON_GUARDAR = botonDelModal("Guardar");
+    public static final By COSTO_BOTON_CANCELAR = botonDelModal("Cancelar");
+    /** Icono de edicion de una fila de costos. */
+    public static final By COSTO_EDITAR_DE_LA_FILA = By.cssSelector("table img[src*='edit']");
+    /** Los campos de Cuotas Generales no tienen formcontrolname: se ubican por fila. */
+    public static final By CUOTAS_CAMPOS = By.cssSelector("table input");
+    public static final By CUOTAS_BOTON_GUARDAR = boton("Guardar");
+
     public static By opcionDeLista(String nombre) {
         return By.xpath("//mat-option[contains(., '" + nombre + "')]");
     }

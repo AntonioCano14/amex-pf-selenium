@@ -1,6 +1,8 @@
 package com.amex.pf.paginas;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -8,6 +10,7 @@ import org.testng.Assert;
 import org.testng.SkipException;
 
 import com.amex.pf.base.Configuracion;
+import com.amex.pf.datos.EstadoDelExpediente;
 import com.amex.pf.utilidades.Descargas;
 
 /**
@@ -176,5 +179,136 @@ public class PaginaExpediente extends PaginaBase {
         Assert.assertFalse(buscarTodos(By.cssSelector("img")).isEmpty(),
                 "El detalle de la solicitud no muestra imagenes.");
         return this;
+    }
+
+    // ------------------------------------- Estatus y dictaminacion (ola 6)
+
+    /**
+     * Deja el filtro con un solo estatus marcado y busca. La lista de estatus es de
+     * seleccion multiple y arranca con TODOS marcados, por eso primero se usa
+     * "Seleccionar todos" para dejarla vacia.
+     */
+    public PaginaExpediente filtrarPorEstatus(String estatus) {
+        esperarQueTermineDeCargar();
+        abrirElFiltro();
+        List<WebElement> opciones = abrirLista(Selectores.SOLICITUDES_FILTRO_ESTATUS);
+        WebElement seleccionarTodos = opciones.stream()
+                .filter(opcion -> textoDe(opcion).equalsIgnoreCase("Seleccionar todos"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "El filtro de estatus ya no tiene la opcion \"Seleccionar todos\"."));
+        if (!hayEstatusMarcados()) {
+            hacerClic(seleccionarTodos);
+        }
+        hacerClic(seleccionarTodos);
+        espera().until(navegador -> !hayEstatusMarcados());
+        WebElement elegido = buscarTodos(Selectores.OPCIONES_DE_LISTA).stream()
+                .filter(opcion -> textoDe(opcion).equalsIgnoreCase(estatus))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("El filtro de estatus no ofrece \""
+                        + estatus + "\". Ofrece: " + estatusQueOfreceElFiltro() + "."));
+        hacerClic(elegido);
+        cerrarOverlayConEscape();
+        esperarQueSeCierrenLasListas();
+        hacerClic(Selectores.BOTON_BUSCAR);
+        esperarQueTermineDeCargar();
+        return this;
+    }
+
+    private boolean hayEstatusMarcados() {
+        return !buscarTodos(By.cssSelector("mat-option.mat-selected")).isEmpty();
+    }
+
+    public List<String> estatusQueOfreceElFiltro() {
+        return opcionesDeLaLista(Selectores.SOLICITUDES_FILTRO_ESTATUS);
+    }
+
+    /** Solicitudes que muestra la tabla despues de filtrar (0 si no hay ninguna). */
+    public int cuantasSolicitudesEncontro() {
+        try {
+            return filasConDatos().size();
+        } catch (RuntimeException tablaVacia) {
+            return 0;
+        }
+    }
+
+    /** Estatus que muestra el encabezado del detalle ("Estatus: Aprobada"). */
+    public String estatusDelDetalle() {
+        String texto = textoDe(Selectores.DETALLE_ESTATUS);
+        return texto.replace("Estatus:", "").replace("Expirado", "").trim();
+    }
+
+    /**
+     * Pestanas del detalle (DNI, Firma, Caratula, RENAPER, Devolver, Dictaminar) y
+     * si la aplicacion las tiene habilitadas. El nombre de la pestana viene con el
+     * nombre del icono pegado ("portrait DNI"), por eso se compara por contenido.
+     */
+    public Map<String, Boolean> pestanasDelDetalle() {
+        List<WebElement> pestanas = espera().until(navegador -> {
+            List<WebElement> encontradas = navegador.findElements(Selectores.DETALLE_PESTANAS);
+            return encontradas.isEmpty() ? null : encontradas;
+        });
+        Map<String, Boolean> habilitadas = new LinkedHashMap<>();
+        for (String nombre : EstadoDelExpediente.todasLasPestanas()) {
+            WebElement pestana = pestanas.stream()
+                    .filter(candidata -> textoDe(candidata).contains(nombre))
+                    .findFirst()
+                    .orElse(null);
+            if (pestana == null) {
+                continue;
+            }
+            habilitadas.put(nombre, !"true".equals(pestana.getDomAttribute("aria-disabled")));
+        }
+        return habilitadas;
+    }
+
+    /**
+     * Abre el menu de tres puntos del detalle y devuelve sus opciones. El menu queda
+     * ABIERTO: se cierra al elegir una opcion, porque este menu no responde a Escape.
+     */
+    public List<String> abrirElMenuDelDetalle() {
+        if (!estaVisible(Selectores.MENU_ABIERTO, 2)) {
+            hacerClic(Selectores.DETALLE_MENU);
+            verVisible(Selectores.MENU_ABIERTO);
+        }
+        return buscarTodos(Selectores.OPCIONES_DEL_MENU).stream().map(this::textoDe).toList();
+    }
+
+    /** Descarga el ZIP de Doc. Griffin desde el menu del detalle (PF_CP_146). */
+    public PaginaExpediente descargarElDocGriffinDelDetalle() {
+        abrirElMenuDelDetalle();
+        hacerClic(Selectores.opcionDelMenu("Doc. Griffin"));
+        esperarQueDesaparezca(Selectores.MENU_ABIERTO);
+        return this;
+    }
+
+    /** Marca la casilla de la primera solicitud de la tabla. */
+    public PaginaExpediente seleccionarLaPrimeraSolicitud() {
+        esperarQueTermineDeCargar();
+        List<WebElement> casillas = buscarTodos(Selectores.CASILLAS_DE_LA_TABLA);
+        Assert.assertTrue(casillas.size() > 1,
+                "La tabla de solicitudes no muestra casillas de seleccion.");
+        // La primera casilla es la del encabezado ("Seleccionar todo").
+        hacerClic(casillas.get(1));
+        return this;
+    }
+
+    /**
+     * Abre el popup de Aprobar o Denegar solicitudes y devuelve su texto SIN
+     * confirmarlo: el caso valida la leyenda y cierra con Cancelar, para no cambiar
+     * el estatus de solicitudes reales.
+     */
+    public String leerElPopupDeDictamenYCancelar(By boton) {
+        Assert.assertTrue(estaVisible(boton, Configuracion.esperaMaximaSegundos()),
+                "Con una solicitud seleccionada la pantalla no muestra el boton esperado.");
+        hacerClic(boton);
+        String texto = textoDe(verVisible(Selectores.MODAL)).replace("\n", " ").trim();
+        hacerClic(Selectores.MODAL_BOTON_CANCELAR);
+        esperarQueDesaparezca(Selectores.MODAL);
+        return texto;
+    }
+
+    public boolean hayBotonParaEliminarSolicitudes() {
+        return estaVisible(Selectores.boton("Eliminar solicitudes"), 5);
     }
 }
