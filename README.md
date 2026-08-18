@@ -104,6 +104,9 @@ mvn test -Dsuite=validaciones
 # Ola 4: descargas (Excel de Usuarios/Solicitudes/Reportes, layout y ZIP)
 mvn test -Dsuite=descargas
 
+# Ola 6: estados del expediente, dictaminacion, PEP, costos y cuotas (solo lectura)
+mvn test -Dsuite=ola6
+
 # Ola 5: altas, ediciones y bajas. OJO: es la unica suite que ESCRIBE datos
 mvn test -Dsuite=altas
 
@@ -151,8 +154,9 @@ amex-pf-selenium/
     │   │   ├── Configuracion.java        ← URL, usuario, navegador, esperas
     │   │   ├── FabricaDeNavegador.java   ← creación del navegador
     │   │   └── PruebaBase.java           ← abre y cierra el navegador por caso
-    │   ├── datos/                    ← DATOS DE PRUEBA de la ola 5
+    │   ├── datos/                    ← DATOS Y REGLAS DE PRUEBA
     │   │   ├── ElementoDeCatalogo.java    ← qué se escribe en cada catálogo
+    │   │   ├── EstadoDelExpediente.java   ← pestañas esperadas por estatus (ola 6)
     │   │   └── UsuarioDePrueba.java       ← datos del usuario que se da de alta
     │   ├── paginas/                  ← PAGE OBJECTS (una clase por pantalla)
     │   │   ├── Selectores.java           ← TODOS los selectores, en un solo lugar
@@ -166,6 +170,7 @@ amex-pf-selenium/
     │   │   ├── PaginaExpediente.java
     │   │   ├── PaginaTasas.java
     │   │   ├── PaginaCostos.java
+    │   │   ├── PaginaCuotasGenerales.java
     │   │   ├── PaginaReportes.java
     │   │   └── PaginaDashboard.java
     │   ├── pruebas/                  ← LOS CASOS (esto es lo que se edita)
@@ -181,7 +186,11 @@ amex-pf-selenium/
     │   │   ├── DescargasPruebas.java
     │   │   ├── UsuariosAltasPruebas.java     ← ola 5 (escribe datos)
     │   │   ├── CatalogosAltasPruebas.java    ← ola 5 (escribe datos)
-    │   │   └── TasasCftPruebas.java
+    │   │   ├── TasasCftPruebas.java
+    │   │   ├── ExpedienteEstadosPruebas.java  ← ola 6
+    │   │   ├── ExpedienteDictamenPruebas.java ← ola 6
+    │   │   ├── SolicitudesPepPruebas.java     ← ola 6
+    │   │   └── CostosYCuotasPruebas.java      ← ola 6
     │   └── utilidades/
     │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
     │       ├── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
@@ -191,7 +200,7 @@ amex-pf-selenium/
         ├── datos/                    ← imagen.png que piden algunos catálogos
         └── suites/                   ← humo.xml, regresion.xml, login.xml,
                                          validaciones.xml, consultas.xml,
-                                         descargas.xml, altas.xml
+                                         descargas.xml, altas.xml, ola6.xml
 ```
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
@@ -336,6 +345,10 @@ en `resultados/evidencias/`.
 | `UsuariosAltasPruebas` | PF_CP_020, 039–045 (alta, detalle, contraseña, desactivar y activar) — **escribe datos** |
 | `CatalogosAltasPruebas` | PF_CP_048–100 en los 7 catálogos: alta, edición, inactivar y activar — **escribe datos** |
 | `TasasCftPruebas` | PF_CP_107 (Costo Financiero Total: solo números, máximo 9 caracteres) |
+| `ExpedienteEstadosPruebas` | PF_CP_130–141 (detalle de la solicitud por estatus: pestañas habilitadas) |
+| `ExpedienteDictamenPruebas` | PF_CP_144, 145 (popups de Aprobar/Denegar, sin confirmar), 146 (ZIP Doc. Griffin), 124, 126 |
+| `SolicitudesPepPruebas` | PF_CP_121 (editar y eliminar el adicional PEP), 122 |
+| `CostosYCuotasPruebas` | PF_CP_149, 150 (popup de costos, sin guardar), 152 (Cuotas Generales) |
 
 **Catálogos:** la lista esperada está en `amex.catalogos` y hoy es la de
 PF_CP_046 (Nacionalidades, Profesiones, Campaña, Código de país, Productos, Días
@@ -373,7 +386,7 @@ la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
 | PF_CP_013 | 5 tipos de usuario (Administrador Apex, Supervisor AXP, Usuario AXP, Supervisor Agencia, Usuario Agencia) | 2 tipos (*Administrador Centurion*, *Usuario Centurion*), y la lista se llena **después** de elegir el área | la lista esperada se configura en `amex.usuario.tipos` |
 | PF_CP_018 | teléfono móvil solo numérico | acepta letras (`abc12de345`) | **DEF_02**, grupo `defecto_conocido` (excluido de la regresión) |
 | PF_CP_114 | CUIL de 11 caracteres | se muestra con máscara `20-12345678-9`: 13 caracteres = 11 dígitos | resuelto: el caso cuenta dígitos y ya no es `regla_por_confirmar` |
-| PF_CP_122–123 | check *Condicionada a ingresos* en el alta de solicitud | ese check no está hoy en la pantalla | sin automatizar hasta confirmar dónde vive |
+| PF_CP_122–123 | check *Condicionada a ingresos* en el alta de solicitud | ese check no está hoy en la pantalla | `PF_CP_122` lo reporta como diferencia (ola 6, sección 7.5); `PF_CP_123` depende de él |
 
 Cuando negocio confirme otro área o otros tipos de usuario se ajusta
 `configuracion.properties`; cuando se corrija DEF_02 se quita el grupo
@@ -472,17 +485,87 @@ Casos de la ola 5 que **no** se automatizaron todavía, y por qué:
 | `PF_CP_110`–`PF_CP_146` (expediente) | necesitan solicitudes fixture, una por estatus, y los layouts oficiales |
 | `PF_CP_149`, `PF_CP_150`, `PF_CP_152` | Costos y Cuotas Generales afectan el cálculo de todo el ambiente: falta definir si se pueden modificar en QA |
 
+## 7.5 Ola 6 — estados del expediente, dictaminación, costos y cuotas
+
+La suite `ola6` es de **solo lectura**, aunque toque pantallas que escriben:
+
+- Los popups de **Aprobar / Denegar solicitudes** se abren, se lee la leyenda y se
+  cierran con **Cancelar**: ninguna solicitud cambia de estatus.
+- El **adicional PEP** (PF_CP_121) se registra dentro del formulario de alta y se
+  edita y elimina ahí mismo; **nunca** se presiona CREAR SOLICITUD, así que la
+  solicitud no llega a existir.
+- El popup de **costos** se llena y se cierra con **Cancelar**; en **Cuotas
+  Generales** solo se leen los importes: nunca se presiona Guardar.
+- Del detalle de la solicitud solo se leen el estatus y las pestañas: **nunca** se
+  presiona Devolver ni Dictaminar.
+
+```bash
+mvn test -Dsuite=ola6                        # los 13 casos de la ola 6
+mvn test -Dsuite=ola6 -Damex.headless=false  # viendo el navegador
+mvn test -Dtest=ExpedienteEstadosPruebas     # solo el detalle por estatus
+```
+
+### Las reglas de PF_CP_130–141 se ajustan sin tocar código
+
+Cada caso declara en `configuracion.properties` el estatus por el que filtra y las
+pestañas que deben quedar habilitadas. Si negocio confirma otra regla, se edita
+esta configuración y no el Java:
+
+```properties
+amex.expediente.pestanas=DNI,Firma,Carátula,RENAPER,Devolver,Dictaminar
+amex.expediente.PF_CP_136.estatus=Pendiente de firma
+amex.expediente.PF_CP_136.habilitadas=DNI,Firma,Carátula,RENAPER,Devolver
+```
+
+Si el ambiente no tiene ninguna solicitud en ese estatus el caso se reporta
+**OMITIDO** diciendo qué fixture falta (no falla). Hoy falta la solicitud en
+estatus *Firmada*; siguen pendientes las **12 solicitudes fixture, una por
+estatus**, para que la ola quede completa y estable.
+
+### Diferencias entre la matriz y la aplicación que dejó esta ola
+
+Etiquetadas `regla_por_confirmar`, fuera de la suite y de la regresión (para
+verlas: `mvn test -Dgroups=regla_por_confirmar`):
+
+| Caso | La matriz dice | La aplicación en QA hace |
+|---|---|---|
+| `PF_CP_133`, `PF_CP_134`, `PF_CP_135` | en esos estatus solo se puede consultar el DNI | además habilita **Devolver** |
+| `PF_CP_136` (Pendiente de firma) | habilita Firma y RENAPER | las deja **deshabilitadas** (la firma aún no existe) |
+| `PF_CP_139`, `PF_CP_140` (Denegada / Aprobada) | habilita Devolver | la deja **deshabilitada** (la solicitud ya está dictaminada) |
+| `PF_CP_122`–`PF_CP_123` | el alta de solicitud tiene el check *Condicionada a ingresos* | ese check no está en la pantalla |
+| `PF_CP_124` | Expediente tiene botón para **eliminar solicitudes** con layout | no existe: solo CREAR SOLICITUD, Aprobar, Denegar, Exportar y Filtrar |
+| `PF_CP_126` | Expediente permite **cargar el layout** de solicitudes | no existe el botón Importar (misma diferencia que `PF_CP_125`) |
+
+Las expectativas de las pestañas se tomaron de la matriz. Si negocio confirma que
+el comportamiento actual es el correcto, se ajusta
+`amex.expediente.PF_CP_XXX.habilitadas` y el caso pasa a la regresión.
+
+### Lo que la ola 6 **no** automatiza, y por qué
+
+| Caso | Motivo |
+|---|---|
+| `PF_CP_005`, `PF_CP_006`, `PF_CP_007` | la matriz los marca **Cancelado** (recuperación y cambio de contraseña): fuera de alcance |
+| `PF_CP_110`, `PF_CP_123` | crean solicitudes reales que después **no se pueden borrar**: hace falta un ambiente con limpieza acordada |
+| `PF_CP_144`, `PF_CP_145` (confirmar el dictamen) | aprobar o denegar cambia el estatus de solicitudes reales: hacen falta solicitudes desechables |
+| `PF_CP_149`, `PF_CP_150`, `PF_CP_152` (guardar) | los importes de Costos y Cuotas Generales afectan el cálculo de todo el ambiente; hoy además QA **no tiene importes cargados** |
+| `PF_CP_023`–`PF_CP_025` | la carga masiva crea usuarios reales: faltan los layouts oficiales (válido e inválido) |
+| `PF_CP_103`, `PF_CP_106` | modifican las tasas vigentes: falta acordar un periodo de prueba |
+| Firma en el dispositivo, correo real y revisión visual | son pruebas manuales: no son deterministas desde el navegador |
+
 ## 8. Resultado de la última ejecución
 
 Con el usuario `admin-centurion` en QA:
 
 ```
+mvn test -Dsuite=ola6        →  13 casos: 10 aprobados, 0 fallidos, 3 omitidos
 mvn test -Dsuite=altas       →  11 casos: 11 aprobados, 0 fallidos, 0 omitidos
-mvn test -Dsuite=regresion   →  98 casos: 97 aprobados, 0 fallidos, 1 omitido
+mvn test -Dsuite=regresion   → 111 casos: 107 aprobados, 0 fallidos, 4 omitidos
 ```
 
-La única omisión es `PF_CP_148` (falta el dato semilla de costos). Si el ambiente
-responde lento, subir `amex.espera` en `configuracion.properties`.
+Las omisiones son datos semilla que faltan en QA: `PF_CP_148` y `PF_CP_150`
+(costos del producto), `PF_CP_152` (importes de Cuotas Generales) y `PF_CP_137`
+(solicitud en estatus *Firmada*). Si el ambiente responde lento, subir
+`amex.espera` en `configuracion.properties`.
 
 Cubre login y sus negativos, las 9 pantallas del menú, la sesión al recargar, las
 validaciones de campo de la ola 2 (Solicitudes y alta de usuario), los 7 catálogos,

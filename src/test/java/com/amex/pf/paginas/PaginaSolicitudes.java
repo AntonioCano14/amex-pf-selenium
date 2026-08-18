@@ -56,4 +56,62 @@ public class PaginaSolicitudes extends PaginaFormulario {
         esperarQueDesaparezca(Selectores.MODAL);
         return this;
     }
+
+    // -------------------------------------------- Adicionales PEP (ola 6)
+
+    /**
+     * Registra un adicional PEP en el formulario. Solo agrega la fila al formulario
+     * que se esta llenando: la solicitud NO se crea, porque nunca se presiona CREAR
+     * SOLICITUD.
+     */
+    public PaginaSolicitudes registrarUnAdicionalPep(String nombre, String apellidos, String dni,
+            String cargo, String relacion) {
+        abrirElModalDePep();
+        escribir(Selectores.PEP_CAMPO_NOMBRE, nombre);
+        escribir(Selectores.PEP_CAMPO_APELLIDOS, apellidos);
+        escribir(Selectores.PEP_CAMPO_DNI, dni);
+        escribir(Selectores.PEP_CAMPO_CARGO, cargo);
+        escribir(Selectores.PEP_CAMPO_RELACION, relacion);
+        hacerClic(Selectores.PEP_BOTON_ACEPTAR);
+        esperarQueDesaparezca(Selectores.MODAL);
+        return this;
+    }
+
+    public int cuantosAdicionalesPepHay() {
+        return buscarTodos(Selectores.PEP_FILAS).size();
+    }
+
+    /** Texto de la tabla de adicionales PEP (encabezados y filas). */
+    public String tablaDeAdicionalesPep() {
+        return textoDe(Selectores.PEP_TABLA);
+    }
+
+    public boolean elAdicionalPepTieneSusIconos() {
+        return estaVisible(Selectores.PEP_BOTON_EDITAR, 10)
+                && estaVisible(Selectores.PEP_BOTON_ELIMINAR, 10);
+    }
+
+    /** Abre el adicional PEP registrado y devuelve el nombre que trae el modal. */
+    public String abrirLaEdicionDelAdicionalPep() {
+        hacerClic(Selectores.PEP_BOTON_EDITAR);
+        verVisible(Selectores.MODAL);
+        return valorDe(Selectores.PEP_CAMPO_NOMBRE);
+    }
+
+    public PaginaSolicitudes eliminarElAdicionalPep() {
+        int antes = cuantosAdicionalesPepHay();
+        hacerClic(Selectores.PEP_BOTON_ELIMINAR);
+        espera().until(navegador -> cuantosAdicionalesPepHay() < antes);
+        return this;
+    }
+
+    /** PF_CP_122: check "Condicionada a ingresos" del alta de solicitud. */
+    public boolean hayCheckCondicionadaAIngresos() {
+        return buscarTodos(Selectores.SOLICITUDES_CHECKS).stream()
+                .anyMatch(check -> textoDe(check).toLowerCase().contains("condicionada"));
+    }
+
+    public int cuantosChecksTieneElFormulario() {
+        return buscarTodos(Selectores.SOLICITUDES_CHECKS).size();
+    }
 }
