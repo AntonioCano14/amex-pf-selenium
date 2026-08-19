@@ -4,6 +4,15 @@ Suite de pruebas funcionales de la aplicación **AMEX PF / eApply Expediente**,
 con trazabilidad a la matriz *Amex PF V2*: cada prueba lleva el ID del caso
 (`PF_CP_004`, `VAL_001`, …) en su nombre y en su `description`.
 
+Documentos de apoyo:
+
+| Documento | Para qué |
+|---|---|
+| [`COMO_FUNCIONA_EL_CODIGO.md`](COMO_FUNCIONA_EL_CODIGO.md) | cómo se relacionan pruebas, páginas, selectores, datos y utilidades |
+| [`GUIA_CASO_POR_CASO.md`](GUIA_CASO_POR_CASO.md) | por cada caso: qué pide la matriz, qué hace su código y el comando para correrlo solo |
+| [`TRAZABILIDAD.md`](TRAZABILIDAD.md) / `TRAZABILIDAD.csv` | los 160 IDs de la matriz vs. lo automatizado, con lo pendiente y su motivo |
+| [`PLAN_AUTOMATIZACION.md`](PLAN_AUTOMATIZACION.md) | plan por olas, convenciones y estrategia de regresión |
+
 Versión verificada contra el ambiente DEV: **14 casos correctos, 0 fallas**
 (el resto omitidos por permisos del perfil o por hallazgos abiertos; ver
 [Resultado de la última ejecución](#8-resultado-de-la-última-ejecución)).
@@ -121,6 +130,53 @@ mvn test -Dtest=LoginPruebas
 mvn test -Dtest=LoginPruebas#pfCp004UsuarioYContrasenaCorrectos
 ```
 
+### Caso por caso (uno a la vez)
+
+Para probar el caso 1, luego el 2, y así:
+
+```bash
+mvn test -Dtest='LoginPruebas#pfCp001UsuarioCorrectoContrasenaIncorrecta'
+mvn test -Dtest='LoginPruebas#pfCp002UsuarioIncorrectoContrasenaCorrecta'
+mvn test -Dtest='LoginPruebas#pfCp001UsuarioCorrectoContrasenaIncorrecta' -Damex.headless=false
+```
+
+- **El comando exacto de cada uno de los 160 casos está en `TRAZABILIDAD.csv`**
+  (columna `comando`) y la explicación de qué hace su código, en
+  `GUIA_CASO_POR_CASO.md`.
+- Cada caso abre su propio navegador y cierra la sesión al terminar, así que se
+  puede correr solo y en cualquier orden.
+- La consola imprime `[PF_CP_001] APROBADO` o `FALLIDO` con el motivo, también
+  cuando corres un caso suelto con `-Dtest`.
+- Un método con tabla (`@DataProvider`) cubre varios IDs: el comando los corre
+  todos y la consola imprime el ID de cada renglón.
+
+### Trazabilidad con la matriz
+
+```bash
+python3 herramientas/generar_trazabilidad.py
+```
+
+Regenera, leyendo la matriz (`datos/matriz_funcional.csv`) y el código:
+
+| Archivo | Para qué sirve |
+|---|---|
+| `TRAZABILIDAD.md` | tabla ID de la matriz → prueba que lo cubre → etiquetas → motivo si falta |
+| `TRAZABILIDAD.csv` | lo mismo en Excel, con el comando para correr cada caso |
+| `GUIA_CASO_POR_CASO.md` | por caso: qué pide la matriz, qué hace el código, sus pasos y su comando |
+
+Hay que volver a correrlo cada vez que se agregan o cambian casos, y completar en
+`datos/matriz_funcional.csv` los casos que el documento marca como incompletos.
+
+### No afectación después de un cambio técnico
+
+```bash
+./herramientas/no_afectacion.sh              # suite regresion
+./herramientas/no_afectacion.sh humo
+```
+
+La primera corrida guarda la referencia; las siguientes comparan caso por caso
+contra ella (sin los tiempos) y muestran solo lo que cambió.
+
 ### Desde IntelliJ
 
 - Clic derecho sobre `src/test/resources/suites/humo.xml` → **Run**.
@@ -203,7 +259,16 @@ amex-pf-selenium/
         └── suites/                   ← humo.xml, regresion.xml, login.xml,
                                          validaciones.xml, consultas.xml,
                                          descargas.xml, altas.xml, ola6.xml
+
+├── datos/matriz_funcional.csv    ← la matriz Amex PF V2 en CSV (fuente de la trazabilidad)
+├── herramientas/
+│   ├── generar_trazabilidad.py   ← genera TRAZABILIDAD.* y GUIA_CASO_POR_CASO.md
+│   └── no_afectacion.sh          ← corre una suite y la compara con la corrida anterior
+└── resultados/                   ← capturas, descargas y logs (no se sube a Git)
 ```
+
+Cómo se llaman entre sí estas capas está explicado con el recorrido completo de un
+caso en [`COMO_FUNCIONA_EL_CODIGO.md`](COMO_FUNCIONA_EL_CODIGO.md).
 
 **Regla de oro:** ningún `By` dentro de `pruebas/`. Si la aplicación cambia un
 botón, se corrige **una línea** en `Selectores.java`.
