@@ -7,11 +7,12 @@
 
   Ejecutar:  mvn test -Dsuite=consultas
 -->
-<suite name="Consultas AMEX PF - ola 3" verbose="1">
+<suite name="Consultas AMEX PF - ola 3" verbose="1" parallel="methods" thread-count="1">
 
   <listeners>
     <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
     <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+    <listener class-name="com.amex.pf.utilidades.OrdenDeLaMatriz"/>
   </listeners>
 
   <test name="Consultas de solo lectura">

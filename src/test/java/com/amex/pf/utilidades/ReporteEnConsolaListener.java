@@ -1,6 +1,7 @@
 package com.amex.pf.utilidades;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.openqa.selenium.By;
@@ -21,6 +22,9 @@ import org.testng.ITestResult;
  * description = "PF_CP_046 La lista muestra..."), asi que al agregar un caso
  * nuevo solo hay que empezar la descripcion con el ID de la matriz.
  *
+ * El resumen final sale ordenado como la matriz. El orden de ejecucion lo pone
+ * {@link OrdenDeLaMatriz}, que se registra en la misma suite.
+ *
  * Se registra en las suites XML dentro de &lt;listeners&gt;.
  */
 public class ReporteEnConsolaListener implements ITestListener {
@@ -29,7 +33,11 @@ public class ReporteEnConsolaListener implements ITestListener {
     private static final String FALLIDO = "FALLIDO ";
     private static final String OMITIDO = "OMITIDO ";
 
-    private final List<String> resumen = new ArrayList<>();
+    /** Cada caso ejecutado: clave de orden de la matriz + linea impresa. */
+    private final List<CasoDelResumen> resumen = new ArrayList<>();
+
+    private record CasoDelResumen(String orden, String linea) {
+    }
 
     @Override
     public void onTestSuccess(ITestResult resultado) {
@@ -49,8 +57,11 @@ public class ReporteEnConsolaListener implements ITestListener {
     @Override
     public void onFinish(ITestContext contexto) {
         System.out.println();
-        System.out.println("RESUMEN DE CASOS EJECUTADOS");
-        resumen.forEach(System.out::println);
+        System.out.println("RESUMEN DE CASOS EJECUTADOS (en el orden de la matriz)");
+        resumen.stream()
+                .sorted(Comparator.comparing(CasoDelResumen::orden))
+                .map(CasoDelResumen::linea)
+                .forEach(System.out::println);
         System.out.println("Aprobados: " + contexto.getPassedTests().size()
                 + " | Fallidos: " + contexto.getFailedTests().size()
                 + " | Omitidos: " + contexto.getSkippedTests().size());
@@ -58,15 +69,16 @@ public class ReporteEnConsolaListener implements ITestListener {
     }
 
     private void imprimir(String estado, ITestResult resultado, Throwable motivo) {
+        String id = idDelCaso(resultado);
         String linea = String.format("[%s] %s %s%s (%.1f s)",
-                idDelCaso(resultado), estado, nombreDelCaso(resultado),
+                id, estado, nombreDelCaso(resultado),
                 datosDelCaso(resultado), duracionEnSegundos(resultado));
 
         System.out.println(linea);
         if (motivo != null) {
             System.out.println("            Motivo: " + primeraLinea(motivo.getMessage()));
         }
-        resumen.add(linea);
+        resumen.add(new CasoDelResumen(IdDeLaMatriz.comoOrden(id) + "|" + linea, linea));
     }
 
     /**
@@ -75,25 +87,25 @@ public class ReporteEnConsolaListener implements ITestListener {
      * palabra de la descripcion del @Test.
      */
     private String idDelCaso(ITestResult resultado) {
-        String enLosDatos = idEnLosDatos(resultado);
+        String enLosDatos = IdDeLaMatriz.deLosDatos(resultado.getParameters());
         if (enLosDatos != null) {
             return enLosDatos;
         }
-        String descripcion = resultado.getMethod().getDescription();
-        if (descripcion == null || descripcion.isBlank()) {
-            return resultado.getMethod().getMethodName();
-        }
-        return descripcion.trim().split("\\s+")[0];
+        return IdDeLaMatriz.deLaDescripcion(resultado.getMethod().getDescription(),
+                resultado.getMethod().getMethodName());
     }
 
-    /** Descripcion del caso sin el ID. */
+    /** Descripcion del caso sin el ID que la encabeza. */
     private String nombreDelCaso(ITestResult resultado) {
         String descripcion = resultado.getMethod().getDescription();
         if (descripcion == null || descripcion.isBlank()) {
             return resultado.getMethod().getMethodName();
         }
         String[] partes = descripcion.trim().split("\\s+", 2);
-        return partes.length > 1 ? partes[1] : partes[0];
+        if (partes.length > 1 && IdDeLaMatriz.es(partes[0])) {
+            return partes[1];
+        }
+        return descripcion.trim();
     }
 
     /** Datos del caso cuando viene de un @DataProvider (por ejemplo el catalogo). */
@@ -110,7 +122,7 @@ public class ReporteEnConsolaListener implements ITestListener {
             if (dato instanceof By || dato instanceof Object[]) {
                 continue;
             }
-            if (esId(valor)) {
+            if (IdDeLaMatriz.es(valor)) {
                 valor = valor.replaceFirst("^\\S+\\s*", "");
             }
             if (!valor.isBlank()) {
@@ -118,25 +130,6 @@ public class ReporteEnConsolaListener implements ITestListener {
             }
         }
         return valores.isEmpty() ? "" : " -> " + String.join(", ", valores);
-    }
-
-    private String idEnLosDatos(ITestResult resultado) {
-        Object[] datos = resultado.getParameters();
-        if (datos == null) {
-            return null;
-        }
-        for (Object dato : datos) {
-            if (dato instanceof String texto && esId(texto)) {
-                return texto.trim().split("\\s+")[0];
-            }
-        }
-        return null;
-    }
-
-    /** Reconoce los IDs de la matriz y los internos: PF_CP_046, VAL_001, DEF_01, SEG_001. */
-    private boolean esId(String texto) {
-        return texto != null
-                && texto.trim().split("\\s+")[0].matches("(PF_CP|VAL|DEF|SEG)_[0-9]+([-_][0-9]+)?");
     }
 
     private double duracionEnSegundos(ITestResult resultado) {

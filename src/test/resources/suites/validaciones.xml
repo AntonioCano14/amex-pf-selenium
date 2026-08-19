@@ -13,11 +13,12 @@
   Ejecutar:  mvn test -Dsuite=validaciones
   Con el navegador visible:  mvn test -Dsuite=validaciones -Damex.headless=false
 -->
-<suite name="Ola 2 - Validaciones de campos AMEX PF" verbose="1">
+<suite name="Ola 2 - Validaciones de campos AMEX PF" verbose="1" parallel="methods" thread-count="1">
 
   <listeners>
     <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
     <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+    <listener class-name="com.amex.pf.utilidades.OrdenDeLaMatriz"/>
   </listeners>
 
   <test name="Validaciones de campos">

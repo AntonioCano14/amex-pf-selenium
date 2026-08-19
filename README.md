@@ -194,6 +194,8 @@ amex-pf-selenium/
     │   └── utilidades/
     │       ├── EvidenciaListener.java    ← captura de pantalla al fallar
     │       ├── ReporteEnConsolaListener.java ← imprime ID y APROBADO/FALLIDO
+    │       ├── OrdenDeLaMatriz.java      ← ejecuta e imprime en el orden de la matriz
+    │       ├── IdDeLaMatriz.java         ← lee el ID del caso y su orden
     │       └── Descargas.java            ← espera el archivo y lee Excel y ZIP
     └── resources/
         ├── configuracion.properties
@@ -263,15 +265,24 @@ Al terminar cada caso se imprime su **ID de la matriz** y su estado, y al final 
 resumen:
 
 ```
+[PF_CP_001] APROBADO Usuario correcto y contrasena incorrecta (1.4 s)
 [PF_CP_004] APROBADO Usuario y contrasena correctos (1.3 s)
-[PF_CP_047-093] APROBADO Cada catalogo muestra su tabla ... -> Versiones (1.3 s)
 [PF_CP_046] FALLIDO  La lista muestra todos los catalogos esperados (0.7 s)
             Motivo: Faltan catalogos en la lista: [Versiones].
+[PF_CP_047-093] APROBADO Cada catalogo muestra su tabla ... -> Versiones (1.3 s)
 
-RESUMEN DE CASOS EJECUTADOS
+RESUMEN DE CASOS EJECUTADOS (en el orden de la matriz)
 ...
 Aprobados: 30 | Fallidos: 0 | Omitidos: 0
 ```
+
+**Los casos salen en el orden de la matriz** (PF_CP_001, PF_CP_002, PF_CP_003… y
+al final los internos VAL, SEG y DEF), tanto mientras corren como en el resumen,
+sin importar en qué clase está cada uno. De eso se encarga `OrdenDeLaMatriz`,
+registrado en cada suite; para que TestNG respete ese orden entre clases distintas
+las suites declaran `parallel="methods" thread-count="1"`: **los casos siguen
+corriendo de uno en uno** (la aplicación solo permite una sesión activa por
+usuario), solo se deja de agrupar por clase.
 
 El ID sale de la **primera palabra de la descripción** del `@Test` (o del primer
 dato del `@DataProvider` cuando un método cubre varios IDs), así que un caso nuevo
@@ -281,8 +292,8 @@ solo debe empezar su descripción con el ID de la matriz para aparecer identific
 @Test(groups = "navegacion", description = "PF_CP_120 Descripción del caso")
 ```
 
-Esto lo hace `ReporteEnConsolaListener`, registrado en las suites XML junto con
-`EvidenciaListener`; no hay que tocarlo al agregar casos.
+Esto lo hacen `ReporteEnConsolaListener` y `OrdenDeLaMatriz`, registrados en las
+suites XML junto con `EvidenciaListener`; no hay que tocarlos al agregar casos.
 
 ## 5.2 Mensajes de la consola que son normales
 

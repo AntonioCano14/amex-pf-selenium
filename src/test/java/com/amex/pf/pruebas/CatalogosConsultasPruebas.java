@@ -75,7 +75,8 @@ public class CatalogosConsultasPruebas extends PruebaBase {
     }
 
     @Test(groups = "consultas", dataProvider = "pantallas",
-            description = "Pantalla del catalogo con su boton Agregar elemento y su tabla")
+            description = "PF_CP_047-093 Pantalla del catalogo con su boton Agregar "
+                    + "elemento y su tabla")
     public void laPantallaDelCatalogoMuestraSuTabla(String caso, String catalogo,
             String[] columnas) {
         catalogos.abrirCatalogo(catalogo).elBotonAgregarElementoDebeEstarVisible();
@@ -90,7 +91,8 @@ public class CatalogosConsultasPruebas extends PruebaBase {
     }
 
     @Test(groups = "consultas", dataProvider = "detalles",
-            description = "Ver detalle del catalogo con sus campos, EDITAR DATOS y la X")
+            description = "PF_CP_050-097 Ver detalle del catalogo con sus campos, "
+                    + "EDITAR DATOS y la X")
     public void elDetalleDelCatalogoMuestraSusDatos(String caso, String catalogo,
             String[] campos) {
         catalogos.abrirCatalogo(catalogo)
@@ -103,7 +105,7 @@ public class CatalogosConsultasPruebas extends PruebaBase {
     }
 
     @Test(groups = "consultas", dataProvider = "limitesDeCaracteres",
-            description = "Maximo de caracteres de un campo del alta del catalogo")
+            description = "PF_CP_049-080 Maximo de caracteres del alta del catalogo")
     public void elCampoDelCatalogoRespetaSuMaximo(String caso, String catalogo, String campo,
             int maximo) {
         catalogos.abrirCatalogo(catalogo).abrirElAltaDeElemento();

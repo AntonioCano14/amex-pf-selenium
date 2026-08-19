@@ -5,11 +5,12 @@
   Humo: lo minimo indispensable, para correr en cada despliegue a DEV.
   Ejecutar:  mvn test -Dsuite=humo
 -->
-<suite name="Humo AMEX PF" verbose="1">
+<suite name="Humo AMEX PF" verbose="1" parallel="methods" thread-count="1">
 
   <listeners>
     <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
     <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
+    <listener class-name="com.amex.pf.utilidades.OrdenDeLaMatriz"/>
   </listeners>
 
   <test name="Humo">
