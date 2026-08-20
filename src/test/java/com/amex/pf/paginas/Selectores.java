@@ -76,6 +76,15 @@ public final class Selectores {
     public static final By BOTON_LIMPIAR = boton("Limpiar");
     public static final By BOTON_FILTRAR = boton("Filtrar");
 
+    // ------------------------------------------------------------------- Inicio
+    /** Leyenda de la grafica de Inicio: "Aprobada - 4" (PF_CP_008). */
+    public static final By INICIO_LEYENDA_DE_LA_GRAFICA =
+            By.cssSelector("span.progress-legend-one");
+    /** Bloque de detalle de un estatus: porcentaje, cantidad y nombre del estatus. */
+    public static final By INICIO_DETALLE_POR_ESTATUS = By.cssSelector("div.detail-progress");
+    public static final By INICIO_PORCENTAJE_DEL_DETALLE = By.cssSelector("span.progress-detail");
+    public static final By INICIO_ESTATUS_DEL_DETALLE = By.cssSelector("span.status-detail");
+
     public static By textoVisible(String texto) {
         return By.xpath("//*[contains(text(), '" + texto + "')]");
     }

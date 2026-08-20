@@ -214,6 +214,19 @@ public abstract class PaginaBase {
         esperarQueSeCierrenLasListas();
     }
 
+    /**
+     * Baja (o sube) la pantalla hasta dejar el elemento a la vista. La tabla y los
+     * botones inferiores quedan fuera de la parte visible cuando la ventana es
+     * chica: sin esto la captura de evidencia no los muestra y un clic puede
+     * quedar tapado por el encabezado.
+     */
+    protected WebElement desplazarHasta(By selector) {
+        WebElement elemento = verVisible(selector);
+        ((JavascriptExecutor) navegador())
+                .executeScript("arguments[0].scrollIntoView({block: 'center'});", elemento);
+        return elemento;
+    }
+
     /** Texto leido del DOM, para no depender de animaciones ni del scroll. */
     protected String textoDe(WebElement elemento) {
         Object valor = ((JavascriptExecutor) navegador())
@@ -251,7 +264,7 @@ public abstract class PaginaBase {
      * ("Descripcionarrow_drop_up..." se lee "Descripcion").
      */
     public List<String> encabezadosDeLaTabla() {
-        verVisible(Selectores.TABLA);
+        desplazarHasta(Selectores.TABLA);
         return buscarTodos(Selectores.ENCABEZADOS_DE_TABLA).stream()
                 .map(encabezado -> textoDe(encabezado)
                         .replaceAll("arrow_drop_(up|down)", "")
