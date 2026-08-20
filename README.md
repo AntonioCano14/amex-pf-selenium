@@ -443,6 +443,29 @@ Los datos con los que se filtra (nombre de usuario, DNI de la solicitud) se toma
 de la propia tabla, así la suite funciona en cualquier ambiente sin datos semilla
 fijos.
 
+**PF_CP_028 — los cuatro filtros de Usuarios.** La matriz pide filtrar «por
+nombre, correo electrónico, rol o estatus», así que el caso son cuatro pruebas
+independientes (todas se reportan como `PF_CP_028`, cada una con el filtro que
+usó):
+
+```
+mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorNombre'
+mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo'
+mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorRol'
+mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus'
+```
+
+Las cuatro siguen el mismo patrón: toman el valor de la **primera fila** de la
+columna que corresponde (por eso no dependen de que exista un usuario, un rol o
+un estatus concreto en el ambiente), aplican el filtro y exigen que **todas** las
+filas que quedaron correspondan a lo buscado; si no, el mensaje lista los
+usuarios que la tabla dejó visibles.
+
+Nombre y correo son campos de texto: basta con que la celda **contenga** lo
+buscado. *Rol* y *Estatus* se eligen de una lista, así que se compara el valor
+**exacto** — de lo contrario un filtro por *Activo* pasaría mostrando filas
+*Inactivo*, que contiene esa palabra.
+
 Pendientes de negocio que esta ola dejó documentados (etiquetados y **fuera** de
 la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
 `-Dgroups=regla_por_confirmar`):

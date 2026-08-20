@@ -587,23 +587,42 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorNombre`  (etiquetas: consultas, usuarios)
 - **Lo que valida el codigo:** El filtro de usuarios busca por nombre
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorNombre'`
-- **Pasos que ejecuta:** `valorDeLaPrimeraFila` -> `abrirElFiltro` -> `filtrarPorNombre` -> `nombresDeLaTablaCuandoTodosContengan` -> `allMatch` -> `toUpperCase`
-- **Verificaciones:** 2
+- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorNombre`
+- **Verificaciones:** 1
 
 ```java
-        // El dato del filtro se toma de la propia tabla: asi la prueba no depende
-        // de que el ambiente tenga un usuario especifico.
-        String nombre = usuarios.valorDeLaPrimeraFila(PaginaUsuarios.COLUMNA_NOMBRE);
+        laTablaFiltradaSoloDebeMostrar("Nombre", PaginaUsuarios.COLUMNA_NOMBRE,
+                nombre -> usuarios.abrirElFiltro().filtrarPorNombre(nombre), CONTIENE);
+```
+- **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo`  (etiquetas: consultas, usuarios)
+- **Lo que valida el codigo:** El filtro de usuarios busca por correo electronico
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo'`
+- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorCorreo`
+- **Verificaciones:** 1
 
-        List<String> nombres = usuarios.abrirElFiltro()
-                .filtrarPorNombre(nombre)
-                .nombresDeLaTablaCuandoTodosContengan(nombre);
+```java
+        laTablaFiltradaSoloDebeMostrar("Correo electronico", PaginaUsuarios.COLUMNA_CORREO,
+                correo -> usuarios.abrirElFiltro().filtrarPorCorreo(correo), CONTIENE);
+```
+- **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorRol`  (etiquetas: consultas, usuarios)
+- **Lo que valida el codigo:** El filtro de usuarios busca por rol
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorRol'`
+- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorRol`
+- **Verificaciones:** 1
 
-        Assert.assertFalse(nombres.isEmpty(),
-                "El filtro por nombre \"" + nombre + "\" no devolvio ningun usuario.");
-        Assert.assertTrue(nombres.stream()
-                        .allMatch(actual -> actual.toUpperCase().contains(nombre.toUpperCase())),
-                "La tabla filtrada por \"" + nombre + "\" muestra otros usuarios: " + nombres + ".");
+```java
+        laTablaFiltradaSoloDebeMostrar("Rol", PaginaUsuarios.COLUMNA_ROL,
+                rol -> usuarios.abrirElFiltro().filtrarPorRol(rol), ES_IGUAL);
+```
+- **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus`  (etiquetas: consultas, usuarios)
+- **Lo que valida el codigo:** El filtro de usuarios busca por estatus
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus'`
+- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorEstatus`
+- **Verificaciones:** 1
+
+```java
+        laTablaFiltradaSoloDebeMostrar("Estatus", PaginaUsuarios.COLUMNA_ESTATUS,
+                estatus -> usuarios.abrirElFiltro().filtrarPorEstatus(estatus), ES_IGUAL);
 ```
 
 ## PF_CP_029

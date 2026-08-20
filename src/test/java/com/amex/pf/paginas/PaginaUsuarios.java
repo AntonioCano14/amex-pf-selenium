@@ -1,6 +1,7 @@
 package com.amex.pf.paginas;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
@@ -26,6 +27,8 @@ public class PaginaUsuarios extends PaginaFormulario {
     /** Columna de la tabla (0 = Numero de empleado, 1 = Nombre, 2 = Apellidos...). */
     public static final int COLUMNA_NOMBRE = 1;
     public static final int COLUMNA_CORREO = 3;
+    public static final int COLUMNA_ROL = 4;
+    public static final int COLUMNA_ESTATUS = 5;
 
     /** Ultimo mensaje que mostro la aplicacion en un popup (alta, edicion, baja). */
     private String ultimoMensaje = "";
@@ -67,6 +70,36 @@ public class PaginaUsuarios extends PaginaFormulario {
         return this;
     }
 
+    public PaginaUsuarios filtrarPorCorreo(String correo) {
+        escribir(Selectores.USUARIOS_FILTRO_CORREO, correo);
+        hacerClic(Selectores.BOTON_BUSCAR);
+        return this;
+    }
+
+    /** Filtra por una opcion de la lista Rol (PF_CP_028). */
+    public PaginaUsuarios filtrarPorRol(String rol) {
+        elegirDeLaLista(Selectores.USUARIOS_FILTRO_ROL, rol);
+        hacerClic(Selectores.BOTON_BUSCAR);
+        return this;
+    }
+
+    /** Filtra por una opcion de la lista Estatus (PF_CP_028). */
+    public PaginaUsuarios filtrarPorEstatus(String estatus) {
+        elegirDeLaLista(Selectores.USUARIOS_FILTRO_ESTATUS, estatus);
+        hacerClic(Selectores.BOTON_BUSCAR);
+        return this;
+    }
+
+    /** Opciones que ofrece hoy la lista Rol del filtro. */
+    public List<String> rolesDelFiltro() {
+        return opcionesDeLaLista(Selectores.USUARIOS_FILTRO_ROL);
+    }
+
+    /** Opciones que ofrece hoy la lista Estatus del filtro. */
+    public List<String> estatusDelFiltro() {
+        return opcionesDeLaLista(Selectores.USUARIOS_FILTRO_ESTATUS);
+    }
+
     public PaginaUsuarios limpiarElFiltro() {
         hacerClic(Selectores.BOTON_LIMPIAR);
         return this;
@@ -78,16 +111,35 @@ public class PaginaUsuarios extends PaginaFormulario {
     }
 
     public List<String> nombresDeLaTabla() {
+        return valoresDeLaColumna(COLUMNA_NOMBRE);
+    }
+
+    /** Valores que muestra hoy una columna de la tabla, fila por fila. */
+    public List<String> valoresDeLaColumna(int columna) {
         return leerAunqueLaTablaSeRefresque(() -> filasConDatos().stream()
-                .map(fila -> textoDe(fila.findElements(By.tagName("td")).get(COLUMNA_NOMBRE)))
+                .map(fila -> textoDe(fila.findElements(By.tagName("td")).get(columna)))
                 .toList());
+    }
+
+    /**
+     * Espera a que la tabla responda al filtro (que todas las filas cumplan lo
+     * que se pidio) y devuelve lo que quedo visible en la columna. Si no llega a
+     * cumplirse no falla aqui: devuelve la tabla tal cual para que el mensaje de
+     * la prueba diga que usuarios quedaron.
+     */
+    public List<String> valoresDeLaColumnaCuandoTodos(int columna, Predicate<String> condicion) {
+        try {
+            espera().until(navegador -> valoresDeLaColumna(columna).stream().allMatch(condicion));
+        } catch (TimeoutException noFiltro) {
+            // El assert de la prueba dice exactamente que quedo en la tabla.
+        }
+        return valoresDeLaColumna(columna);
     }
 
     /** Espera a que la tabla responda al filtro y devuelve los nombres visibles. */
     public List<String> nombresDeLaTablaCuandoTodosContengan(String texto) {
-        espera().until(navegador -> nombresDeLaTabla().stream()
-                .allMatch(nombre -> nombre.toUpperCase().contains(texto.toUpperCase())));
-        return nombresDeLaTabla();
+        return valoresDeLaColumnaCuandoTodos(COLUMNA_NOMBRE,
+                nombre -> nombre.toUpperCase().contains(texto.toUpperCase()));
     }
 
     public PaginaUsuarios esperarQueLaTablaTenga(int cantidad) {

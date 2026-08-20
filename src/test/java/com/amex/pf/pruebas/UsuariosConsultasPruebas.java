@@ -1,6 +1,9 @@
 package com.amex.pf.pruebas;
 
 import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -17,6 +20,17 @@ import com.amex.pf.paginas.PaginaUsuarios;
  * se presiona GUARDAR REGISTRO, EDITAR DATOS ni Desactivar.
  */
 public class UsuariosConsultasPruebas extends PruebaBase {
+
+    /**
+     * Como debe quedar la columna filtrada en PF_CP_028. Nombre y correo son
+     * campos de texto (basta con que la celda lo contenga), mientras Rol y Estatus
+     * se eligen de una lista, asi que la celda debe ser exactamente lo elegido:
+     * "Activo" no puede traer "Inactivo", que lo contiene como texto.
+     */
+    private static final BiPredicate<String, String> CONTIENE =
+            (celda, buscado) -> celda.toUpperCase().contains(buscado.toUpperCase());
+    private static final BiPredicate<String, String> ES_IGUAL =
+            (celda, buscado) -> celda.equalsIgnoreCase(buscado);
 
     private PaginaUsuarios usuarios;
 
@@ -36,19 +50,52 @@ public class UsuariosConsultasPruebas extends PruebaBase {
     @Test(groups = {"consultas", "usuarios"},
             description = "PF_CP_028 El filtro de usuarios busca por nombre")
     public void pfCp028FiltrarPorNombre() {
-        // El dato del filtro se toma de la propia tabla: asi la prueba no depende
-        // de que el ambiente tenga un usuario especifico.
-        String nombre = usuarios.valorDeLaPrimeraFila(PaginaUsuarios.COLUMNA_NOMBRE);
+        laTablaFiltradaSoloDebeMostrar("Nombre", PaginaUsuarios.COLUMNA_NOMBRE,
+                nombre -> usuarios.abrirElFiltro().filtrarPorNombre(nombre), CONTIENE);
+    }
 
-        List<String> nombres = usuarios.abrirElFiltro()
-                .filtrarPorNombre(nombre)
-                .nombresDeLaTablaCuandoTodosContengan(nombre);
+    @Test(groups = {"consultas", "usuarios"},
+            description = "PF_CP_028 El filtro de usuarios busca por correo electronico")
+    public void pfCp028FiltrarPorCorreo() {
+        laTablaFiltradaSoloDebeMostrar("Correo electronico", PaginaUsuarios.COLUMNA_CORREO,
+                correo -> usuarios.abrirElFiltro().filtrarPorCorreo(correo), CONTIENE);
+    }
 
-        Assert.assertFalse(nombres.isEmpty(),
-                "El filtro por nombre \"" + nombre + "\" no devolvio ningun usuario.");
-        Assert.assertTrue(nombres.stream()
-                        .allMatch(actual -> actual.toUpperCase().contains(nombre.toUpperCase())),
-                "La tabla filtrada por \"" + nombre + "\" muestra otros usuarios: " + nombres + ".");
+    @Test(groups = {"consultas", "usuarios"},
+            description = "PF_CP_028 El filtro de usuarios busca por rol")
+    public void pfCp028FiltrarPorRol() {
+        laTablaFiltradaSoloDebeMostrar("Rol", PaginaUsuarios.COLUMNA_ROL,
+                rol -> usuarios.abrirElFiltro().filtrarPorRol(rol), ES_IGUAL);
+    }
+
+    @Test(groups = {"consultas", "usuarios"},
+            description = "PF_CP_028 El filtro de usuarios busca por estatus")
+    public void pfCp028FiltrarPorEstatus() {
+        laTablaFiltradaSoloDebeMostrar("Estatus", PaginaUsuarios.COLUMNA_ESTATUS,
+                estatus -> usuarios.abrirElFiltro().filtrarPorEstatus(estatus), ES_IGUAL);
+    }
+
+    /**
+     * Patron comun de PF_CP_028: el valor buscado se toma de la primera fila de la
+     * tabla (asi la prueba no depende de que el ambiente tenga un usuario, un rol
+     * o un estatus en particular), se aplica el filtro y se exige que TODAS las
+     * filas que quedaron correspondan a lo buscado en su columna.
+     */
+    private void laTablaFiltradaSoloDebeMostrar(String filtro, int columna,
+            Consumer<String> aplicarElFiltro, BiPredicate<String, String> corresponde) {
+        String buscado = usuarios.valorDeLaPrimeraFila(columna);
+        Assert.assertFalse(buscado.isBlank(),
+                "La primera fila de la tabla no tiene " + filtro + ": no hay con que filtrar.");
+
+        aplicarElFiltro.accept(buscado);
+        Predicate<String> condicion = celda -> corresponde.test(celda, buscado);
+        List<String> visibles = usuarios.valoresDeLaColumnaCuandoTodos(columna, condicion);
+
+        Assert.assertFalse(visibles.isEmpty(),
+                "El filtro " + filtro + " = \"" + buscado + "\" no devolvio ningun usuario.");
+        Assert.assertTrue(visibles.stream().allMatch(condicion),
+                "La tabla filtrada por " + filtro + " = \"" + buscado
+                        + "\" muestra usuarios que no corresponden: " + visibles + ".");
     }
 
     @Test(groups = {"consultas", "usuarios"},
