@@ -30,6 +30,30 @@ public class PaginaUsuarios extends PaginaFormulario {
     public static final int COLUMNA_ROL = 4;
     public static final int COLUMNA_ESTATUS = 5;
 
+    /**
+     * Los cuatro filtros de la pantalla de Usuarios (PF_CP_028 y PF_CP_029), con
+     * la columna de la tabla que debe responder a cada uno.
+     */
+    public enum Filtro {
+        NOMBRE("Nombre", Selectores.USUARIOS_FILTRO_NOMBRE, COLUMNA_NOMBRE, false),
+        CORREO("Correo electronico", Selectores.USUARIOS_FILTRO_CORREO, COLUMNA_CORREO, false),
+        ROL("Rol", Selectores.USUARIOS_FILTRO_ROL, COLUMNA_ROL, true),
+        ESTATUS("Estatus", Selectores.USUARIOS_FILTRO_ESTATUS, COLUMNA_ESTATUS, true);
+
+        public final String etiqueta;
+        public final By selector;
+        public final int columna;
+        /** Las listas (Rol, Estatus) se eligen; los demas se escriben. */
+        public final boolean esLista;
+
+        Filtro(String etiqueta, By selector, int columna, boolean esLista) {
+            this.etiqueta = etiqueta;
+            this.selector = selector;
+            this.columna = columna;
+            this.esLista = esLista;
+        }
+    }
+
     /** Ultimo mensaje que mostro la aplicacion en un popup (alta, edicion, baja). */
     private String ultimoMensaje = "";
 
@@ -64,30 +88,55 @@ public class PaginaUsuarios extends PaginaFormulario {
         return this;
     }
 
-    public PaginaUsuarios filtrarPorNombre(String nombre) {
-        escribir(Selectores.USUARIOS_FILTRO_NOMBRE, nombre);
+    /**
+     * Captura un filtro sin buscar todavia: PF_CP_029 llena los filtros y presiona
+     * Limpiar, sin pasar por el boton Buscar.
+     */
+    public PaginaUsuarios capturarElFiltro(Filtro filtro, String valor) {
+        if (filtro.esLista) {
+            elegirDeLaLista(filtro.selector, valor);
+        } else {
+            escribir(filtro.selector, valor);
+        }
+        return this;
+    }
+
+    public PaginaUsuarios buscar() {
         hacerClic(Selectores.BOTON_BUSCAR);
         return this;
     }
 
+    public PaginaUsuarios filtrarPor(Filtro filtro, String valor) {
+        return capturarElFiltro(filtro, valor).buscar();
+    }
+
+    public PaginaUsuarios filtrarPorNombre(String nombre) {
+        return filtrarPor(Filtro.NOMBRE, nombre);
+    }
+
     public PaginaUsuarios filtrarPorCorreo(String correo) {
-        escribir(Selectores.USUARIOS_FILTRO_CORREO, correo);
-        hacerClic(Selectores.BOTON_BUSCAR);
-        return this;
+        return filtrarPor(Filtro.CORREO, correo);
     }
 
     /** Filtra por una opcion de la lista Rol (PF_CP_028). */
     public PaginaUsuarios filtrarPorRol(String rol) {
-        elegirDeLaLista(Selectores.USUARIOS_FILTRO_ROL, rol);
-        hacerClic(Selectores.BOTON_BUSCAR);
-        return this;
+        return filtrarPor(Filtro.ROL, rol);
     }
 
     /** Filtra por una opcion de la lista Estatus (PF_CP_028). */
     public PaginaUsuarios filtrarPorEstatus(String estatus) {
-        elegirDeLaLista(Selectores.USUARIOS_FILTRO_ESTATUS, estatus);
-        hacerClic(Selectores.BOTON_BUSCAR);
-        return this;
+        return filtrarPor(Filtro.ESTATUS, estatus);
+    }
+
+    /** Valor que muestra hoy un filtro (vacio si no tiene nada capturado). */
+    public String valorDelFiltro(Filtro filtro) {
+        if (!filtro.esLista) {
+            String valor = valorDe(filtro.selector);
+            return valor == null ? "" : valor;
+        }
+        // En un mat-select el valor elegido es el texto del disparador; cuando no
+        // hay nada elegido queda vacio (la lista de este filtro no tiene placeholder).
+        return textoDe(filtro.selector);
     }
 
     /** Opciones que ofrece hoy la lista Rol del filtro. */
@@ -106,8 +155,7 @@ public class PaginaUsuarios extends PaginaFormulario {
     }
 
     public String valorDelFiltroDeNombre() {
-        String valor = valorDe(Selectores.USUARIOS_FILTRO_NOMBRE);
-        return valor == null ? "" : valor;
+        return valorDelFiltro(Filtro.NOMBRE);
     }
 
     public List<String> nombresDeLaTabla() {

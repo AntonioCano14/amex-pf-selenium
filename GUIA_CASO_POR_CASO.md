@@ -587,42 +587,38 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorNombre`  (etiquetas: consultas, usuarios)
 - **Lo que valida el codigo:** El filtro de usuarios busca por nombre
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorNombre'`
-- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorNombre`
+- **Pasos que ejecuta:** 
 - **Verificaciones:** 1
 
 ```java
-        laTablaFiltradaSoloDebeMostrar("Nombre", PaginaUsuarios.COLUMNA_NOMBRE,
-                nombre -> usuarios.abrirElFiltro().filtrarPorNombre(nombre), CONTIENE);
+        laTablaFiltradaSoloDebeMostrar(Filtro.NOMBRE, CONTIENE);
 ```
 - **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo`  (etiquetas: consultas, usuarios)
 - **Lo que valida el codigo:** El filtro de usuarios busca por correo electronico
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo'`
-- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorCorreo`
+- **Pasos que ejecuta:** 
 - **Verificaciones:** 1
 
 ```java
-        laTablaFiltradaSoloDebeMostrar("Correo electronico", PaginaUsuarios.COLUMNA_CORREO,
-                correo -> usuarios.abrirElFiltro().filtrarPorCorreo(correo), CONTIENE);
+        laTablaFiltradaSoloDebeMostrar(Filtro.CORREO, CONTIENE);
 ```
 - **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorRol`  (etiquetas: consultas, usuarios)
 - **Lo que valida el codigo:** El filtro de usuarios busca por rol
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorRol'`
-- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorRol`
+- **Pasos que ejecuta:** 
 - **Verificaciones:** 1
 
 ```java
-        laTablaFiltradaSoloDebeMostrar("Rol", PaginaUsuarios.COLUMNA_ROL,
-                rol -> usuarios.abrirElFiltro().filtrarPorRol(rol), ES_IGUAL);
+        laTablaFiltradaSoloDebeMostrar(Filtro.ROL, ES_IGUAL);
 ```
 - **Prueba:** `UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus`  (etiquetas: consultas, usuarios)
 - **Lo que valida el codigo:** El filtro de usuarios busca por estatus
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus'`
-- **Pasos que ejecuta:** `abrirElFiltro` -> `filtrarPorEstatus`
+- **Pasos que ejecuta:** 
 - **Verificaciones:** 1
 
 ```java
-        laTablaFiltradaSoloDebeMostrar("Estatus", PaginaUsuarios.COLUMNA_ESTATUS,
-                estatus -> usuarios.abrirElFiltro().filtrarPorEstatus(estatus), ES_IGUAL);
+        laTablaFiltradaSoloDebeMostrar(Filtro.ESTATUS, ES_IGUAL);
 ```
 
 ## PF_CP_029
@@ -630,19 +626,29 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Realiza el limpiado de los filtros que se aplicarón en los campos
 - **Prueba:** `UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros`  (etiquetas: consultas, usuarios)
-- **Lo que valida el codigo:** El boton Limpiar borra los filtros de usuarios
+- **Lo que valida el codigo:** El boton Limpiar borra los cuatro filtros de usuarios
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros'`
-- **Pasos que ejecuta:** `cuantosUsuariosMuestraLaTabla` -> `valorDeLaPrimeraFila` -> `abrirElFiltro` -> `filtrarPorNombre` -> `limpiarElFiltro` -> `valorDelFiltroDeNombre` -> `esperarQueLaTablaTenga`
-- **Verificaciones:** 1
+- **Pasos que ejecuta:** `cuantosUsuariosMuestraLaTabla` -> `abrirElFiltro` -> `capturarElFiltro` -> `valorDelFiltro` -> `buscar` -> `limpiarElFiltro` -> `esperarQueLaTablaTenga`
+- **Verificaciones:** 2
 
 ```java
         int todos = usuarios.cuantosUsuariosMuestraLaTabla();
-        String nombre = usuarios.valorDeLaPrimeraFila(PaginaUsuarios.COLUMNA_NOMBRE);
 
-        usuarios.abrirElFiltro().filtrarPorNombre(nombre).limpiarElFiltro();
+        usuarios.abrirElFiltro();
+        for (Filtro filtro : Filtro.values()) {
+            String valor = valorParaFiltrarPor(filtro);
+            usuarios.capturarElFiltro(filtro, valor);
+            // Si el filtro no quedo capturado, Limpiar no probaria nada.
+            Assert.assertFalse(usuarios.valorDelFiltro(filtro).isBlank(),
+                    "El filtro " + filtro.etiqueta + " no tomo el valor \"" + valor + "\".");
+        }
+        usuarios.buscar().limpiarElFiltro();
 
-        Assert.assertEquals(usuarios.valorDelFiltroDeNombre(), "",
-                "El campo Nombre del filtro no quedo vacio.");
+        for (Filtro filtro : Filtro.values()) {
+            Assert.assertEquals(usuarios.valorDelFiltro(filtro), "",
+                    "El filtro " + filtro.etiqueta + " no quedo vacio despues de Limpiar.");
+        }
+        // Sin filtros la tabla debe volver a mostrar a todos los usuarios.
         usuarios.esperarQueLaTablaTenga(todos);
 ```
 

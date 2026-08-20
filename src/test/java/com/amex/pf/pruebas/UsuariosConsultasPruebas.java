@@ -2,7 +2,6 @@ package com.amex.pf.pruebas;
 
 import java.util.List;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.testng.Assert;
@@ -12,6 +11,7 @@ import org.testng.annotations.Test;
 import com.amex.pf.base.PruebaBase;
 import com.amex.pf.paginas.PaginaLogin;
 import com.amex.pf.paginas.PaginaUsuarios;
+import com.amex.pf.paginas.PaginaUsuarios.Filtro;
 
 /**
  * Ola 3 - Consultas de la pantalla de Usuarios (PF_CP_026 a PF_CP_030).
@@ -50,29 +50,25 @@ public class UsuariosConsultasPruebas extends PruebaBase {
     @Test(groups = {"consultas", "usuarios"},
             description = "PF_CP_028 El filtro de usuarios busca por nombre")
     public void pfCp028FiltrarPorNombre() {
-        laTablaFiltradaSoloDebeMostrar("Nombre", PaginaUsuarios.COLUMNA_NOMBRE,
-                nombre -> usuarios.abrirElFiltro().filtrarPorNombre(nombre), CONTIENE);
+        laTablaFiltradaSoloDebeMostrar(Filtro.NOMBRE, CONTIENE);
     }
 
     @Test(groups = {"consultas", "usuarios"},
             description = "PF_CP_028 El filtro de usuarios busca por correo electronico")
     public void pfCp028FiltrarPorCorreo() {
-        laTablaFiltradaSoloDebeMostrar("Correo electronico", PaginaUsuarios.COLUMNA_CORREO,
-                correo -> usuarios.abrirElFiltro().filtrarPorCorreo(correo), CONTIENE);
+        laTablaFiltradaSoloDebeMostrar(Filtro.CORREO, CONTIENE);
     }
 
     @Test(groups = {"consultas", "usuarios"},
             description = "PF_CP_028 El filtro de usuarios busca por rol")
     public void pfCp028FiltrarPorRol() {
-        laTablaFiltradaSoloDebeMostrar("Rol", PaginaUsuarios.COLUMNA_ROL,
-                rol -> usuarios.abrirElFiltro().filtrarPorRol(rol), ES_IGUAL);
+        laTablaFiltradaSoloDebeMostrar(Filtro.ROL, ES_IGUAL);
     }
 
     @Test(groups = {"consultas", "usuarios"},
             description = "PF_CP_028 El filtro de usuarios busca por estatus")
     public void pfCp028FiltrarPorEstatus() {
-        laTablaFiltradaSoloDebeMostrar("Estatus", PaginaUsuarios.COLUMNA_ESTATUS,
-                estatus -> usuarios.abrirElFiltro().filtrarPorEstatus(estatus), ES_IGUAL);
+        laTablaFiltradaSoloDebeMostrar(Filtro.ESTATUS, ES_IGUAL);
     }
 
     /**
@@ -81,33 +77,50 @@ public class UsuariosConsultasPruebas extends PruebaBase {
      * o un estatus en particular), se aplica el filtro y se exige que TODAS las
      * filas que quedaron correspondan a lo buscado en su columna.
      */
-    private void laTablaFiltradaSoloDebeMostrar(String filtro, int columna,
-            Consumer<String> aplicarElFiltro, BiPredicate<String, String> corresponde) {
-        String buscado = usuarios.valorDeLaPrimeraFila(columna);
-        Assert.assertFalse(buscado.isBlank(),
-                "La primera fila de la tabla no tiene " + filtro + ": no hay con que filtrar.");
+    private void laTablaFiltradaSoloDebeMostrar(Filtro filtro,
+            BiPredicate<String, String> corresponde) {
+        String buscado = valorParaFiltrarPor(filtro);
 
-        aplicarElFiltro.accept(buscado);
+        usuarios.abrirElFiltro().filtrarPor(filtro, buscado);
         Predicate<String> condicion = celda -> corresponde.test(celda, buscado);
-        List<String> visibles = usuarios.valoresDeLaColumnaCuandoTodos(columna, condicion);
+        List<String> visibles = usuarios.valoresDeLaColumnaCuandoTodos(filtro.columna, condicion);
 
         Assert.assertFalse(visibles.isEmpty(),
-                "El filtro " + filtro + " = \"" + buscado + "\" no devolvio ningun usuario.");
+                "El filtro " + filtro.etiqueta + " = \"" + buscado
+                        + "\" no devolvio ningun usuario.");
         Assert.assertTrue(visibles.stream().allMatch(condicion),
-                "La tabla filtrada por " + filtro + " = \"" + buscado
+                "La tabla filtrada por " + filtro.etiqueta + " = \"" + buscado
                         + "\" muestra usuarios que no corresponden: " + visibles + ".");
     }
 
+    /** Dato con el que se filtra: el que ya muestra la primera fila de la tabla. */
+    private String valorParaFiltrarPor(Filtro filtro) {
+        String valor = usuarios.valorDeLaPrimeraFila(filtro.columna);
+        Assert.assertFalse(valor.isBlank(), "La primera fila de la tabla no tiene "
+                + filtro.etiqueta + ": no hay con que filtrar.");
+        return valor;
+    }
+
     @Test(groups = {"consultas", "usuarios"},
-            description = "PF_CP_029 El boton Limpiar borra los filtros de usuarios")
+            description = "PF_CP_029 El boton Limpiar borra los cuatro filtros de usuarios")
     public void pfCp029LimpiarLosFiltros() {
         int todos = usuarios.cuantosUsuariosMuestraLaTabla();
-        String nombre = usuarios.valorDeLaPrimeraFila(PaginaUsuarios.COLUMNA_NOMBRE);
 
-        usuarios.abrirElFiltro().filtrarPorNombre(nombre).limpiarElFiltro();
+        usuarios.abrirElFiltro();
+        for (Filtro filtro : Filtro.values()) {
+            String valor = valorParaFiltrarPor(filtro);
+            usuarios.capturarElFiltro(filtro, valor);
+            // Si el filtro no quedo capturado, Limpiar no probaria nada.
+            Assert.assertFalse(usuarios.valorDelFiltro(filtro).isBlank(),
+                    "El filtro " + filtro.etiqueta + " no tomo el valor \"" + valor + "\".");
+        }
+        usuarios.buscar().limpiarElFiltro();
 
-        Assert.assertEquals(usuarios.valorDelFiltroDeNombre(), "",
-                "El campo Nombre del filtro no quedo vacio.");
+        for (Filtro filtro : Filtro.values()) {
+            Assert.assertEquals(usuarios.valorDelFiltro(filtro), "",
+                    "El filtro " + filtro.etiqueta + " no quedo vacio despues de Limpiar.");
+        }
+        // Sin filtros la tabla debe volver a mostrar a todos los usuarios.
         usuarios.esperarQueLaTablaTenga(todos);
     }
 

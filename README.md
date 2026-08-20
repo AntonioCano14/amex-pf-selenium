@@ -466,6 +466,19 @@ buscado. *Rol* y *Estatus* se eligen de una lista, así que se compara el valor
 **exacto** — de lo contrario un filtro por *Activo* pasaría mostrando filas
 *Inactivo*, que contiene esa palabra.
 
+**PF_CP_029 — Limpiar.** Captura los **cuatro** filtros (y comprueba que cada uno
+tomó el valor, para que Limpiar no pase por descarte), busca, presiona Limpiar y
+exige que los cuatro queden vacíos y que la tabla vuelva a mostrar a todos los
+usuarios:
+
+```
+mvn test -Dtest='UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros'
+```
+
+Los cuatro filtros viven en un solo lugar, el enum `PaginaUsuarios.Filtro`
+(etiqueta, selector, columna de la tabla y si es lista o campo de texto): si la
+pantalla agrega un filtro, se añade ahí y los casos 028/029 lo cubren solos.
+
 Pendientes de negocio que esta ola dejó documentados (etiquetados y **fuera** de
 la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
 `-Dgroups=regla_por_confirmar`):

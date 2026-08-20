@@ -39,7 +39,7 @@ Para correr un caso solo: `mvn test -Dtest='Clase#metodo'`.
 | PF_CP_026 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp026ActualizarLaTabla` | El boton Actualizar tabla recarga la tabla de usuarios | consultas, usuarios |  |
 | PF_CP_027 | Expediente pantalla usuario |  |  | si | `DescargasPruebas#exportarUsuariosAExcel` | Exportar a excel descarga la tabla de usuarios | descargas |  |
 | PF_CP_028 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp028FiltrarPorNombre ; UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo ; UsuariosConsultasPruebas#pfCp028FiltrarPorRol ; UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus` | El filtro de usuarios busca por nombre | consultas, usuarios |  |
-| PF_CP_029 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros` | El boton Limpiar borra los filtros de usuarios | consultas, usuarios |  |
+| PF_CP_029 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros` | El boton Limpiar borra los cuatro filtros de usuarios | consultas, usuarios |  |
 | PF_CP_030 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp030VerDetalleDelUsuario` | Ver detalle muestra los datos del usuario | consultas, usuarios |  |
 | PF_CP_031 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_012 (duplicado en la matriz). |
 | PF_CP_032 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_013 (duplicado en la matriz). |
