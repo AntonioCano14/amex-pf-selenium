@@ -707,6 +707,50 @@ el comportamiento actual es el correcto, se ajusta
 | `PF_CP_103`, `PF_CP_106` | modifican las tasas vigentes: falta acordar un periodo de prueba |
 | Firma en el dispositivo, correo real y revisión visual | son pruebas manuales: no son deterministas desde el navegador |
 
+## 7.6 Validaciones del detalle del usuario (PF_CP_031–PF_CP_038)
+
+La matriz pide las mismas reglas de los campos del alta (PF_CP_012–019) **pero en
+el detalle**: *Usuarios → seleccionar un usuario → ver detalle → EDITAR DATOS →
+click en el campo*. Por eso viven en su propia clase,
+`UsuariosDetalleValidacionesPruebas`, y no en la del alta.
+
+Es solo lectura: se escribe en los campos y se abren las listas, pero **nunca** se
+presiona GUARDAR; cada prueba sale con CANCELAR (incluso si el caso falló, con un
+`@AfterMethod`), así el usuario de QA queda con sus datos originales.
+
+```
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas'                                  # los 8 casos
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp031ListaAreaDelDetalle'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp032ListaTipoDeUsuarioDelDetalle'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp036CampoCorreoElectronicoDelDetalle'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp037TelefonoMovilDelDetalle'
+mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp038TelefonoFijoDelDetalle'
+```
+
+| Caso | Qué valida la prueba |
+|---|---|
+| `PF_CP_031` | la lista *Area* del detalle muestra exactamente las áreas del perfil con el que se ejecuta (`amex.usuario.areas.CORREO`, igual que PF_CP_012) |
+| `PF_CP_032` | la lista *Tipo de usuario* del detalle muestra los tipos de ese perfil (`amex.usuario.tipos.CORREO`) |
+| `SIN_ID` (Número de empleado) | el número de empleado que muestra la tabla es el que trae el campo del detalle (`elDetalleMuestraElNumeroDeEmpleadoDeLaTabla`) |
+| `PF_CP_033`–`035` | Nombre(s), Apellidos y Cargo: máximo 35 caracteres, mínimo 1, y que no acepten números ni caracteres especiales |
+| `PF_CP_036` | acepta los correos de `amex.usuario.correos.validos` sin marcarlos en rojo y rechaza los de `amex.usuario.correos.invalidos` |
+| `PF_CP_037`, `PF_CP_038` | Teléfono móvil y fijo: solo 10 caracteres y solo numéricos |
+
+Diferencias encontradas en el detalle (etiquetadas `defecto_conocido`, **fuera** de
+la regresión; para verlas: `mvn test -Dgroups=defecto_conocido`):
+
+| Caso | La matriz dice | El detalle hace en QA |
+|---|---|---|
+| `PF_CP_033`–`035` (mínimo 1 carácter) | el campo es obligatorio | **DEF_04**: al vaciar Nombre(s), Apellidos o Cargo, GUARDAR sigue habilitado y el campo no se marca en rojo (en el alta sí se deshabilita) |
+| `PF_CP_037` | teléfono móvil solo numérico | **DEF_02**, el mismo defecto del alta (PF_CP_018): acepta letras (`abc12de345`) |
+
+Detalle del correo: el campo **filtra** algunos caracteres inválidos en lugar de
+marcar error (por ejemplo el espacio de `pruebita qa@qa.com`); cuando el campo
+cambia lo capturado, la prueba no lo cuenta como formato inválido porque ya no es
+el texto que se quiso probar.
+
 ## 8. Resultado de la última ejecución
 
 Con el usuario `admin-centurion` en QA:

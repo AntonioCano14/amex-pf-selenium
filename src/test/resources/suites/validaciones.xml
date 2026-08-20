@@ -2,12 +2,15 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 
 <!--
-  OLA 2: validaciones de campo de Solicitudes (pantalla Expediente) y del alta de
-  usuario (pantalla Usuarios). Todos los casos son de solo lectura: escriben en
-  los campos pero no presionan GUARDAR REGISTRO ni CREAR SOLICITUD.
+  OLA 2: validaciones de campo de Solicitudes (pantalla Expediente), del alta de
+  usuario y del detalle del usuario (pantalla Usuarios). Todos los casos son de
+  solo lectura: escriben en los campos pero no presionan GUARDAR REGISTRO, GUARDAR
+  ni CREAR SOLICITUD.
 
   Excluye:
-  - defecto_conocido    : falla por un defecto abierto de la aplicacion (DEF_02)
+  - defecto_conocido    : falla por un defecto abierto de la aplicacion
+                          (DEF_02 telefono movil con letras, DEF_04 el detalle no
+                          valida los campos obligatorios)
   - regla_por_confirmar : la matriz y la aplicacion no coinciden
 
   Ejecutar:  mvn test -Dsuite=validaciones
@@ -26,6 +29,7 @@
     <classes>
       <class name="com.amex.pf.pruebas.ValidacionesDeCamposPruebas"/>
       <class name="com.amex.pf.pruebas.UsuariosValidacionesPruebas"/>
+      <class name="com.amex.pf.pruebas.UsuariosDetalleValidacionesPruebas"/>
     </classes>
   </test>
 </suite>

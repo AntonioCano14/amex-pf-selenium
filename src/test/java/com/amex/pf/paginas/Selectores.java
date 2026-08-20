@@ -50,6 +50,11 @@ public final class Selectores {
                 "mat-dialog-container input[formcontrolname='" + formcontrolname + "']");
     }
 
+    public static By listaDelModal(String formcontrolname) {
+        return By.cssSelector(
+                "mat-dialog-container mat-select[formcontrolname='" + formcontrolname + "']");
+    }
+
     // ------------------------------------------------------- Encabezado y menu
     public static final By SALUDO_USUARIO = By.xpath("//*[contains(text(), 'Hola,')]");
     public static final By MENU_USUARIO = By.cssSelector("button.mat-menu-trigger");
@@ -233,6 +238,20 @@ public final class Selectores {
     public static final By MODAL_BOTON_CANCELAR = botonDelModal("Cancelar");
 
     public static final By USUARIO_DETALLE_CAMPO_CARGO = campoDelModal("position");
+
+    /**
+     * Campos y listas del detalle en modo edicion (PF_CP_031 a PF_CP_038). Se
+     * buscan dentro del modal: el filtro de la tabla usa los mismos nombres
+     * (name, email) y sin acotar al modal se leeria el campo equivocado.
+     */
+    public static final By USUARIO_DETALLE_LISTA_AREA = listaDelModal("area");
+    public static final By USUARIO_DETALLE_LISTA_TIPO = listaDelModal("role");
+    public static final By USUARIO_DETALLE_CAMPO_NUMERO_DE_EMPLEADO =
+            campoDelModal("employeeNumber");
+    public static final By USUARIO_DETALLE_CAMPO_APELLIDOS = campoDelModal("lastName");
+    public static final By USUARIO_DETALLE_CAMPO_CORREO = campoDelModal("email");
+    public static final By USUARIO_DETALLE_CAMPO_TELEFONO_MOVIL = campoDelModal("mobilePhone");
+    public static final By USUARIO_DETALLE_CAMPO_TELEFONO_FIJO = campoDelModal("phone");
     /** Icono de la columna Desactivar de la fila de un usuario. */
     public static final By DESACTIVAR_DE_LA_FILA =
             By.cssSelector("td.action-column button img[src*='disable-user']");

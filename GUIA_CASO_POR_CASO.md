@@ -671,53 +671,238 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                 .cerrarElDetalle();
 ```
 
-## PF_CP_031
+## PF_CP_031 — Validar campo Area (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
-- **Lo que pide la matriz:** Validar que se muestre solo la opción -Ventas
-- **Automatizado:** no. Repite PF_CP_012 (duplicado en la matriz).
+- **Lo que pide la matriz:** Validar que se muestre solo la opción -Ventas NOTA: Para el usuario admin se muestra únicamente Ventas, para admin-centurion se muestra Centurion
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#pfCp031ListaAreaDelDetalle`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** La lista Area del detalle muestra las opciones esperadas
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp031ListaAreaDelDetalle'`
+- **Pasos que ejecuta:** `areasDelDetalle`
+- **Verificaciones:** 1
 
-## PF_CP_032
+```java
+        laListaDebeMostrar("Area", usuarios.areasDelDetalle(), PaginaUsuarios.areasEsperadas());
+```
+
+## PF_CP_032 — Validar campo Tipo de usuario (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
-- **Lo que pide la matriz:** Validar que se muestre solo la opción -Administrador Apex -Supervisor AXP -Usuario AXP -Supervisor Agencia -Usuario Agencia
-- **Automatizado:** no. Repite PF_CP_013 (duplicado en la matriz).
+- **Lo que pide la matriz:** Validar que se muestre solo la opción -Administrador Apex -Supervisor AXP -Usuario AXP -Supervisor Agencia -Usuario Agencia Estos tipos se muestran para el usuario admin; para admin-centurion son -Administrador Centurion -Usuario Centurion
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#pfCp032ListaTipoDeUsuarioDelDetalle`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** La lista Tipo de usuario del detalle muestra las opciones esperadas
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp032ListaTipoDeUsuarioDelDetalle'`
+- **Pasos que ejecuta:** `tiposDeUsuarioDelDetalle`
+- **Verificaciones:** 1
 
-## PF_CP_033
+```java
+        laListaDebeMostrar("Tipo de usuario", usuarios.tiposDeUsuarioDelDetalle(),
+                PaginaUsuarios.tiposDeUsuarioEsperados());
+```
+
+## PF_CP_033 — Validar Campo Nombres (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que permita -35 caracteres maximo -1 caracter Minimo -No permite caracteres numericos y especiales
-- **Automatizado:** no. Repite PF_CP_014 (duplicado en la matriz).
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** Maximo de 35 caracteres por campo del detalle
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_033 Nombres", Selectores.USUARIO_DETALLE_CAMPO_NOMBRES, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `cuantosCaracteresAcepta`
+- **Verificaciones:** 1
 
-## PF_CP_034
+```java
+        int aceptados = usuarios.cuantosCaracteresAcepta(campo, maximo, "letras");
+        Assert.assertEquals(aceptados, maximo,
+                caso + ": el campo acepto " + aceptados + " caracteres y el maximo esperado es "
+                        + maximo + ".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** El detalle no permite numeros ni caracteres especiales
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_033 Nombres", Selectores.USUARIO_DETALLE_CAMPO_NOMBRES, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `loQueAcepta`
+- **Verificaciones:** 1
+
+```java
+        String quedo = usuarios.loQueAcepta(campo, "Juan123!@#");
+        Assert.assertEquals(quedo, "Juan",
+                caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_033 Nombres", Selectores.USUARIO_DETALLE_CAMPO_NOMBRES, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `limpiar` -> `salirDelCampo`
+- **Verificaciones:** 1
+
+```java
+        usuarios.limpiar(campo);
+        usuarios.salirDelCampo(campo);
+        elDetalleDebeRechazarLoCapturado(caso + ": el campo quedo vacio y el detalle debe "
+                + "rechazarlo (minimo un caracter)", campo);
+```
+
+## PF_CP_034 — Validar Campo Apellidos (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que permita -35 caracteres maximo -1 caracter Minimo -No permite caracteres numericos y especiales
-- **Automatizado:** no. Repite PF_CP_015 (duplicado en la matriz).
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** Maximo de 35 caracteres por campo del detalle
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_034 Apellidos", Selectores.USUARIO_DETALLE_CAMPO_APELLIDOS, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `cuantosCaracteresAcepta`
+- **Verificaciones:** 1
 
-## PF_CP_035
+```java
+        int aceptados = usuarios.cuantosCaracteresAcepta(campo, maximo, "letras");
+        Assert.assertEquals(aceptados, maximo,
+                caso + ": el campo acepto " + aceptados + " caracteres y el maximo esperado es "
+                        + maximo + ".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** El detalle no permite numeros ni caracteres especiales
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_034 Apellidos", Selectores.USUARIO_DETALLE_CAMPO_APELLIDOS, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `loQueAcepta`
+- **Verificaciones:** 1
+
+```java
+        String quedo = usuarios.loQueAcepta(campo, "Juan123!@#");
+        Assert.assertEquals(quedo, "Juan",
+                caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_034 Apellidos", Selectores.USUARIO_DETALLE_CAMPO_APELLIDOS, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `limpiar` -> `salirDelCampo`
+- **Verificaciones:** 1
+
+```java
+        usuarios.limpiar(campo);
+        usuarios.salirDelCampo(campo);
+        elDetalleDebeRechazarLoCapturado(caso + ": el campo quedo vacio y el detalle debe "
+                + "rechazarlo (minimo un caracter)", campo);
+```
+
+## PF_CP_035 — Validar Campo Cargo (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que permita -35 caracteres maximo -1 caracter Minimo -No permite caracteres numericos y especiales
-- **Automatizado:** no. Repite PF_CP_016 (duplicado en la matriz).
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** Maximo de 35 caracteres por campo del detalle
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_035 Cargo", Selectores.USUARIO_DETALLE_CAMPO_CARGO, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `cuantosCaracteresAcepta`
+- **Verificaciones:** 1
 
-## PF_CP_036
+```java
+        int aceptados = usuarios.cuantosCaracteresAcepta(campo, maximo, "letras");
+        Assert.assertEquals(aceptados, maximo,
+                caso + ": el campo acepto " + aceptados + " caracteres y el maximo esperado es "
+                        + maximo + ".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** El detalle no permite numeros ni caracteres especiales
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_035 Cargo", Selectores.USUARIO_DETALLE_CAMPO_CARGO, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `loQueAcepta`
+- **Verificaciones:** 1
+
+```java
+        String quedo = usuarios.loQueAcepta(campo, "Juan123!@#");
+        Assert.assertEquals(quedo, "Juan",
+                caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
+```
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_035 Cargo", Selectores.USUARIO_DETALLE_CAMPO_CARGO, 35}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeTextoDelDetalle")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `limpiar` -> `salirDelCampo`
+- **Verificaciones:** 1
+
+```java
+        usuarios.limpiar(campo);
+        usuarios.salirDelCampo(campo);
+        elDetalleDebeRechazarLoCapturado(caso + ": el campo quedo vacio y el detalle debe "
+                + "rechazarlo (minimo un caracter)", campo);
+```
+
+## PF_CP_036 — Validar Campo Correo Electrónico (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
-- **Lo que pide la matriz:** Validar que permita -Solo perimta el formato de correo Ejem: QA@QA.COM
-- **Automatizado:** no. Repite PF_CP_017 (duplicado en la matriz).
+- **Lo que pide la matriz:** Validar que permita -Solo permita el formato de correo Ejem: QA@QA.COM
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#pfCp036CampoCorreoElectronicoDelDetalle`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** El correo del detalle exige formato de correo
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp036CampoCorreoElectronicoDelDetalle'`
+- **Pasos que ejecuta:** `loQueAcepta` -> `salirDelCampo` -> `elCampoTieneErrorDeFormato`
+- **Verificaciones:** 3
 
-## PF_CP_037
+```java
+        By campo = Selectores.USUARIO_DETALLE_CAMPO_CORREO;
+        for (String invalido : Configuracion.lista("amex.usuario.correos.invalidos")) {
+            String quedo = usuarios.loQueAcepta(campo, invalido);
+            usuarios.salirDelCampo(campo);
+            if (!quedo.equals(invalido)) {
+                // El campo filtro caracteres (por ejemplo el espacio): ya no es el
+                // texto invalido que se quiso probar.
+                continue;
+            }
+            elDetalleDebeRechazarLoCapturado(
+                    "El correo \"" + invalido + "\" no tiene formato de direccion de correo",
+                    campo);
+        }
+
+        for (String valido : Configuracion.lista("amex.usuario.correos.validos")) {
+            String quedo = usuarios.loQueAcepta(campo, valido);
+            usuarios.salirDelCampo(campo);
+            Assert.assertEquals(quedo, valido,
+                    "El campo cambio el correo \"" + valido + "\": dejo \"" + quedo + "\".");
+            Assert.assertFalse(usuarios.elCampoTieneErrorDeFormato(campo),
+                    "El correo \"" + valido + "\" tiene formato valido y la aplicacion lo marco "
+                            + "como invalido.");
+        }
+```
+
+## PF_CP_037 — Validar Campo Teléfono Móvil (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que permita -Solo 10 numeros -Caracteres numericos -No permita caracteres alfabeticos y especiales
-- **Automatizado:** no. Repite PF_CP_018 (duplicado en la matriz).
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#pfCp037TelefonoMovilDelDetalle`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Lo que valida el codigo:** Telefono movil del detalle solo 10 caracteres numericos
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp037TelefonoMovilDelDetalle'`
+- **Pasos que ejecuta:** 
+- **Verificaciones:** 1
 
-## PF_CP_038
+```java
+        elTelefonoDebeAceptarSolo10Numeros("PF_CP_037 Telefono movil",
+                Selectores.USUARIO_DETALLE_CAMPO_TELEFONO_MOVIL);
+```
+
+## PF_CP_038 — Validar Campo Teléfono Fijo (detalle del usuario)
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que permita -Solo 10 numeros -Caracteres numericos -No permita caracteres alfabeticos y especiales
-- **Automatizado:** no. Repite PF_CP_019 (duplicado en la matriz).
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#pfCp038TelefonoFijoDelDetalle`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** Telefono fijo del detalle solo 10 caracteres numericos
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp038TelefonoFijoDelDetalle'`
+- **Pasos que ejecuta:** 
+- **Verificaciones:** 1
+
+```java
+        elTelefonoDebeAceptarSolo10Numeros("PF_CP_038 Telefono fijo",
+                Selectores.USUARIO_DETALLE_CAMPO_TELEFONO_FIJO);
+```
 
 ## PF_CP_039 — Validar la modificación de datos en detalles de usuario
 
@@ -3328,6 +3513,23 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         inicio.irAlMenu("Usuarios").recargarLaPantalla();
         Assert.assertTrue(inicio.laSesionSigueAbierta(),
                 "La sesion se perdio al recargar la pantalla.");
+```
+
+## PF_CP_031-038
+
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elDetalleMuestraElNumeroDeEmpleadoDeLaTabla`  (etiquetas: validaciones, usuarios)
+- **Lo que valida el codigo:** El detalle muestra el numero de empleado de la tabla
+- **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elDetalleMuestraElNumeroDeEmpleadoDeLaTabla'`
+- **Pasos que ejecuta:** `numeroDeEmpleadoDeLaTabla` -> `valorDelDetalle`
+- **Verificaciones:** 1
+
+```java
+        String enLaTabla = usuarios.numeroDeEmpleadoDeLaTabla();
+        String enElDetalle =
+                usuarios.valorDelDetalle(Selectores.USUARIO_DETALLE_CAMPO_NUMERO_DE_EMPLEADO);
+        Assert.assertEquals(enElDetalle, enLaTabla,
+                "La tabla muestra el numero de empleado \"" + enLaTabla
+                        + "\" y el detalle muestra \"" + enElDetalle + "\".");
 ```
 
 # Y si un caso sale FALLIDO

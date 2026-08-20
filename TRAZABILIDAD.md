@@ -4,8 +4,8 @@ Generado por `herramientas/generar_trazabilidad.py`; no se edita a mano.
 La explicacion de cada caso esta en `GUIA_CASO_POR_CASO.md`.
 
 - Casos de la matriz: **160**
-- Automatizados: **142**
-- Pendientes: **18**
+- Automatizados: **150**
+- Pendientes: **10**
 
 Para correr un caso solo: `mvn test -Dtest='Clase#metodo'`.
 
@@ -41,14 +41,14 @@ Para correr un caso solo: `mvn test -Dtest='Clase#metodo'`.
 | PF_CP_028 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp028FiltrarPorNombre ; UsuariosConsultasPruebas#pfCp028FiltrarPorCorreo ; UsuariosConsultasPruebas#pfCp028FiltrarPorRol ; UsuariosConsultasPruebas#pfCp028FiltrarPorEstatus` | El filtro de usuarios busca por nombre | consultas, usuarios |  |
 | PF_CP_029 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp029LimpiarLosFiltros` | El boton Limpiar borra los cuatro filtros de usuarios | consultas, usuarios |  |
 | PF_CP_030 | Expediente pantalla usuario |  |  | si | `UsuariosConsultasPruebas#pfCp030VerDetalleDelUsuario` | Ver detalle muestra los datos del usuario | consultas, usuarios |  |
-| PF_CP_031 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_012 (duplicado en la matriz). |
-| PF_CP_032 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_013 (duplicado en la matriz). |
-| PF_CP_033 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_014 (duplicado en la matriz). |
-| PF_CP_034 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_015 (duplicado en la matriz). |
-| PF_CP_035 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_016 (duplicado en la matriz). |
-| PF_CP_036 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_017 (duplicado en la matriz). |
-| PF_CP_037 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_018 (duplicado en la matriz). |
-| PF_CP_038 | Expediente pantalla usuario |  |  | no | `` |  |  | Repite PF_CP_019 (duplicado en la matriz). |
+| PF_CP_031 | Expediente pantalla usuario | Validar campo Area (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#pfCp031ListaAreaDelDetalle` | La lista Area del detalle muestra las opciones esperadas | validaciones, usuarios |  |
+| PF_CP_032 | Expediente pantalla usuario | Validar campo Tipo de usuario (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#pfCp032ListaTipoDeUsuarioDelDetalle` | La lista Tipo de usuario del detalle muestra las opciones esperadas | validaciones, usuarios |  |
+| PF_CP_033 | Expediente pantalla usuario | Validar Campo Nombres (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres ; UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales ; UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar` | Maximo de 35 caracteres por campo del detalle | validaciones, usuarios |  |
+| PF_CP_034 | Expediente pantalla usuario | Validar Campo Apellidos (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres ; UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales ; UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar` | Maximo de 35 caracteres por campo del detalle | validaciones, usuarios |  |
+| PF_CP_035 | Expediente pantalla usuario | Validar Campo Cargo (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#elCampoDelDetalleDebePermitir35Caracteres ; UsuariosDetalleValidacionesPruebas#elCampoDelDetalleNoDebePermitirNumerosNiEspeciales ; UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar` | Maximo de 35 caracteres por campo del detalle | validaciones, usuarios |  |
+| PF_CP_036 | Expediente pantalla usuario | Validar Campo Correo Electrónico (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#pfCp036CampoCorreoElectronicoDelDetalle` | El correo del detalle exige formato de correo | validaciones, usuarios |  |
+| PF_CP_037 | Expediente pantalla usuario | Validar Campo Teléfono Móvil (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#pfCp037TelefonoMovilDelDetalle` | Telefono movil del detalle solo 10 caracteres numericos | validaciones, usuarios, defecto_conocido |  |
+| PF_CP_038 | Expediente pantalla usuario | Validar Campo Teléfono Fijo (detalle del usuario) |  | si | `UsuariosDetalleValidacionesPruebas#pfCp038TelefonoFijoDelDetalle` | Telefono fijo del detalle solo 10 caracteres numericos | validaciones, usuarios |  |
 | PF_CP_039 | Expediente pantalla usuario | Validar la modificación de datos en detalles de usuario | No Ejecutado | si | `UsuariosAltasPruebas#pfCp039DetalleDelUsuario` | Detalle del usuario: editar datos, generar contraseña y cancelar | ola5, usuarios, escribe_datos |  |
 | PF_CP_040 | Expediente pantalla usuario | Validación del botón generar contraseña sobre el detalle de información de usuario | No Ejecutado | si | `UsuariosAltasPruebas#pfCp039DetalleDelUsuario` | Detalle del usuario: editar datos, generar contraseña y cancelar | ola5, usuarios, escribe_datos |  |
 | PF_CP_041 | Expediente pantalla usuario | Validación del boton de cancelar | No Ejecutado | si | `UsuariosAltasPruebas#pfCp039DetalleDelUsuario` | Detalle del usuario: editar datos, generar contraseña y cancelar | ola5, usuarios, escribe_datos |  |
@@ -182,11 +182,12 @@ Para correr un caso solo: `mvn test -Dtest='Clase#metodo'`.
 | `LoginPruebas#val004FormatoDeCorreoInvalido` | Formato de correo invalido | login |
 | `LoginPruebas#def01CorreoConSignoMas` | El correo con el signo + debe ser aceptado | login, defecto_conocido |
 | `NavegacionPruebas#seg001LaSesionSeMantieneAlRecargar` | La sesion se mantiene al recargar la pantalla | navegacion |
+| `UsuariosDetalleValidacionesPruebas#elDetalleMuestraElNumeroDeEmpleadoDeLaTabla` | El detalle muestra el numero de empleado de la tabla | validaciones, usuarios |
 
 ## Casos con datos incompletos en `datos/matriz_funcional.csv`
 
 Al pasar la matriz del PDF a CSV estos casos quedaron sin nombre ni estatus; hay que completarlos en el CSV:
 
-PF_CP_024, PF_CP_025, PF_CP_026, PF_CP_027, PF_CP_028, PF_CP_029, PF_CP_030, PF_CP_031, PF_CP_032, PF_CP_033, PF_CP_034, PF_CP_035, PF_CP_036, PF_CP_037, PF_CP_038
+PF_CP_024, PF_CP_025, PF_CP_026, PF_CP_027, PF_CP_028, PF_CP_029, PF_CP_030
 
 Prefijos: `VAL_` Validacion de campos del login que la matriz no numera.; `SEG_` Comportamiento de sesion.; `DEF_` Defecto abierto de la aplicacion.

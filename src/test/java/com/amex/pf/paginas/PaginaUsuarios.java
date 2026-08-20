@@ -57,6 +57,9 @@ public class PaginaUsuarios extends PaginaFormulario {
     /** Ultimo mensaje que mostro la aplicacion en un popup (alta, edicion, baja). */
     private String ultimoMensaje = "";
 
+    /** Numero de empleado de la fila cuyo detalle se abrio (PF_CP_031 a 038). */
+    private String numeroDeEmpleadoDeLaTabla = "";
+
     /** Abre la pantalla y espera a que la aplicacion termine de navegar. */
     public PaginaUsuarios abrir() {
         esperarQueLaUrlContenga("expedient/users");
@@ -208,6 +211,8 @@ public class PaginaUsuarios extends PaginaFormulario {
                     "Ningun usuario de la tabla tiene numero de empleado: no se puede validar el "
                             + "detalle completo que pide PF_CP_030.");
 
+            List<WebElement> celdas = filas.get(0).findElements(By.tagName("td"));
+            numeroDeEmpleadoDeLaTabla = textoDe(celdas.get(0));
             List<WebElement> ojos = filas.get(0).findElements(Selectores.VER_DETALLE_DE_LA_FILA);
             Assert.assertFalse(ojos.isEmpty(),
                     "La fila del usuario no muestra el boton Ver detalle.");
@@ -215,6 +220,46 @@ public class PaginaUsuarios extends PaginaFormulario {
         });
         ojo.click();
         verVisible(Selectores.MODAL);
+        return this;
+    }
+
+    /** Numero de empleado que mostraba la tabla del usuario cuyo detalle se abrio. */
+    public String numeroDeEmpleadoDeLaTabla() {
+        return numeroDeEmpleadoDeLaTabla;
+    }
+
+    // ------------------------------- Detalle en modo edicion (PF_CP_031 a 038)
+
+    /** Presiona EDITAR DATOS y espera a que el detalle quede editable. */
+    public PaginaUsuarios editarLosDatosDelDetalle() {
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_EDITAR);
+        verVisible(Selectores.USUARIO_DETALLE_BOTON_GUARDAR);
+        return this;
+    }
+
+    public List<String> areasDelDetalle() {
+        return opcionesDeLaLista(Selectores.USUARIO_DETALLE_LISTA_AREA);
+    }
+
+    public List<String> tiposDeUsuarioDelDetalle() {
+        return opcionesDeLaLista(Selectores.USUARIO_DETALLE_LISTA_TIPO);
+    }
+
+    /** Valor que muestra un campo del detalle (vacio si no tiene nada). */
+    public String valorDelDetalle(By campo) {
+        String valor = valorDe(campo);
+        return valor == null ? "" : valor;
+    }
+
+    /** El GUARDAR del detalle, que no es el GUARDAR REGISTRO del alta. */
+    public boolean elBotonGuardarDelDetalleEstaDeshabilitado() {
+        return elBotonEstaDeshabilitado(Selectores.USUARIO_DETALLE_BOTON_GUARDAR);
+    }
+
+    /** Sale del detalle con CANCELAR: la edicion nunca se guarda. */
+    public PaginaUsuarios cancelarLaEdicionDelDetalle() {
+        hacerClic(Selectores.USUARIO_DETALLE_BOTON_CANCELAR);
+        esperarQueDesaparezca(Selectores.MODAL);
         return this;
     }
 
