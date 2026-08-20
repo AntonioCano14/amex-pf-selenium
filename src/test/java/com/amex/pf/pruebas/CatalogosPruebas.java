@@ -46,7 +46,8 @@ public class CatalogosPruebas extends PruebaBase {
     }
 
     @Test(groups = "catalogos", dataProvider = "catalogos",
-            description = "PF_CP_047-093 Cada catalogo muestra su tabla y su boton Agregar elemento")
+            description = "PF_CP_047/054/061/069/076/085/093 Cada catalogo muestra su "
+                    + "tabla y su boton Agregar elemento")
     public void cadaCatalogoMuestraSuTabla(String catalogo) {
         new PaginaCatalogos()
                 .abrirCatalogo(catalogo)

@@ -21,12 +21,6 @@
 -->
 <suite name="Ola 6 - Expediente, dictaminacion y costos AMEX PF" verbose="1" parallel="methods" thread-count="1">
 
-  <listeners>
-    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
-    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
-    <listener class-name="com.amex.pf.utilidades.OrdenDeLaMatriz"/>
-  </listeners>
-
   <test name="Estados del expediente, dictaminacion, PEP, costos y cuotas">
     <groups>
       <run>

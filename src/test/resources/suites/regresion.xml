@@ -14,12 +14,6 @@
 -->
 <suite name="Regresion AMEX PF - solo lectura" verbose="1" parallel="methods" thread-count="1">
 
-  <listeners>
-    <listener class-name="com.amex.pf.utilidades.EvidenciaListener"/>
-    <listener class-name="com.amex.pf.utilidades.ReporteEnConsolaListener"/>
-    <listener class-name="com.amex.pf.utilidades.OrdenDeLaMatriz"/>
-  </listeners>
-
   <test name="Todos los modulos de solo lectura">
     <groups>
       <run>
