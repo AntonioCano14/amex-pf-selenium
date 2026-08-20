@@ -106,7 +106,9 @@ def leer_pruebas():
                     filas[nombre][identificador] = renglon.strip().rstrip(",")
 
         for anotacion, metodo, cuerpo in re.findall(
-                r"@Test\((.*?)\)\s*\n\s*public void (\w+)\([^)]*\) \{\n(.*?)\n    }",
+                # Entre la anotacion y el metodo puede haber comentarios: se ignoran
+                # para que el caso siga apareciendo en la trazabilidad.
+                r"@Test\((.*?)\)\s*\n(?:\s*//[^\n]*\n)*\s*public void (\w+)\([^)]*\) \{\n(.*?)\n    }",
                 fuente, re.S):
             descripcion = "".join(
                 re.findall(r'"([^"]*)"', anotacion.split("description =")[-1])).strip()

@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.amex.pf.base.Configuracion;
 import com.amex.pf.base.PruebaBase;
 import com.amex.pf.paginas.PaginaLogin;
 import com.amex.pf.paginas.PaginaPrincipal;
@@ -106,15 +107,23 @@ public class UsuariosValidacionesPruebas extends PruebaBase {
     @Test(groups = {"validaciones", "usuarios"},
             description = "PF_CP_017 El correo electronico exige formato de correo")
     public void pfCp017CampoCorreoElectronico() {
-        usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, "correo-invalido");
-        usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
-        Assert.assertTrue(usuarios.elBotonGuardarEstaDeshabilitado(),
-                "Con un correo sin formato valido el boton GUARDAR REGISTRO debe quedar "
-                        + "deshabilitado.");
+        for (String invalido : Configuracion.lista("amex.usuario.correos.invalidos")) {
+            usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, invalido);
+            usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
+            Assert.assertTrue(usuarios.elBotonGuardarEstaDeshabilitado(),
+                    "El correo \"" + invalido + "\" no tiene formato de direccion de correo, "
+                            + "asi que GUARDAR REGISTRO debia quedar deshabilitado.");
+        }
 
-        String quedo = usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, "qa@qa.com");
-        Assert.assertEquals(quedo, "qa@qa.com",
-                "El campo no acepto un correo con formato valido: dejo \"" + quedo + "\".");
+        for (String valido : Configuracion.lista("amex.usuario.correos.validos")) {
+            String quedo = usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, valido);
+            usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
+            Assert.assertEquals(quedo, valido,
+                    "El campo cambio el correo \"" + valido + "\": dejo \"" + quedo + "\".");
+            Assert.assertFalse(usuarios.elCampoTieneErrorDeFormato(Selectores.USUARIO_CAMPO_CORREO),
+                    "El correo \"" + valido + "\" tiene formato valido y la aplicacion lo marco "
+                            + "como invalido.");
+        }
     }
 
     /**

@@ -499,6 +499,18 @@ Si la lista no coincide, el mensaje del caso dice **qué falta y qué muestra ho
 la aplicación**, que es el dato con el que se completa la configuración de un
 usuario nuevo.
 
+### Correo electrónico (PF_CP_017)
+
+El caso valida **formato**, no un valor fijo: recorre las listas
+`amex.usuario.correos.validos` y `amex.usuario.correos.invalidos`. Con cada
+inválido exige que *GUARDAR REGISTRO* quede deshabilitado, y con cada válido que
+el campo deje el correo tal cual y no lo marque en rojo (`aria-invalid`). Para
+probar otro ejemplo se agrega a la lista, sin tocar Java.
+
+Observación del ambiente: la pantalla **filtra el signo `+`** al escribirlo
+(`tester.qa+1@dominio.com.ar` queda `tester.qa1@dominio.com.ar`), así que ese
+carácter no se usa como ejemplo válido.
+
 ## 7.3 Ola 4 — descargas de archivos
 
 La suite `descargas` revisa los archivos que entrega la aplicación: el Excel de

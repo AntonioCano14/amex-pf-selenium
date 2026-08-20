@@ -56,4 +56,13 @@ public abstract class PaginaFormulario extends PaginaBase {
     public boolean elBotonEstaDeshabilitado(By boton) {
         return !verVisible(boton).isEnabled();
     }
+
+    /**
+     * Si el formulario marco el campo como invalido. Angular Material pone
+     * aria-invalid="true" en el input cuando su validacion no pasa (es lo que
+     * pinta el campo en rojo), asi que sirve para cualquier campo del alta.
+     */
+    public boolean elCampoTieneErrorDeFormato(By campo) {
+        return "true".equals(verVisible(campo).getDomAttribute("aria-invalid"));
+    }
 }

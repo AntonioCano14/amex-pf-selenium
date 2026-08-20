@@ -51,7 +51,6 @@ public class NavegacionPruebas extends PruebaBase {
     }
 
     @Test(groups = "navegacion", description = "PF_CP_009 Pantalla de Inicio con la tabla de solicitudes")
-    // Faltaria agregar que se haga un scroll para que se pueda visualizar la tabla y validar que si este presente
     public void pfCp009TablaDeInicio() {
         inicio.laPantallaDebeTenerUnaTablaConInformacion();
 

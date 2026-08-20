@@ -407,19 +407,27 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `UsuariosValidacionesPruebas#pfCp017CampoCorreoElectronico`  (etiquetas: validaciones, usuarios)
 - **Lo que valida el codigo:** El correo electronico exige formato de correo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosValidacionesPruebas#pfCp017CampoCorreoElectronico'`
-- **Pasos que ejecuta:** `loQueAcepta` -> `salirDelCampo` -> `elBotonGuardarEstaDeshabilitado`
-- **Verificaciones:** 2
+- **Pasos que ejecuta:** `loQueAcepta` -> `salirDelCampo` -> `elBotonGuardarEstaDeshabilitado` -> `elCampoTieneErrorDeFormato`
+- **Verificaciones:** 3
 
 ```java
-        usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, "correo-invalido");
-        usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
-        Assert.assertTrue(usuarios.elBotonGuardarEstaDeshabilitado(),
-                "Con un correo sin formato valido el boton GUARDAR REGISTRO debe quedar "
-                        + "deshabilitado.");
+        for (String invalido : Configuracion.lista("amex.usuario.correos.invalidos")) {
+            usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, invalido);
+            usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
+            Assert.assertTrue(usuarios.elBotonGuardarEstaDeshabilitado(),
+                    "El correo \"" + invalido + "\" no tiene formato de direccion de correo, "
+                            + "asi que GUARDAR REGISTRO debia quedar deshabilitado.");
+        }
 
-        String quedo = usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, "qa@qa.com");
-        Assert.assertEquals(quedo, "qa@qa.com",
-                "El campo no acepto un correo con formato valido: dejo \"" + quedo + "\".");
+        for (String valido : Configuracion.lista("amex.usuario.correos.validos")) {
+            String quedo = usuarios.loQueAcepta(Selectores.USUARIO_CAMPO_CORREO, valido);
+            usuarios.salirDelCampo(Selectores.USUARIO_CAMPO_CORREO);
+            Assert.assertEquals(quedo, valido,
+                    "El campo cambio el correo \"" + valido + "\": dejo \"" + quedo + "\".");
+            Assert.assertFalse(usuarios.elCampoTieneErrorDeFormato(Selectores.USUARIO_CAMPO_CORREO),
+                    "El correo \"" + valido + "\" tiene formato valido y la aplicacion lo marco "
+                            + "como invalido.");
+        }
 ```
 
 ## PF_CP_018 — Validar Campo Teléfono Móvil
