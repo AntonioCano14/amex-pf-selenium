@@ -458,8 +458,7 @@ la suite y de la regresión; para verlos: `mvn test -Dgroups=defecto_conocido` o
 
 | Caso | La matriz dice | La aplicación en QA hace | Cómo quedó |
 |---|---|---|---|
-| PF_CP_012 | el área es *Ventas* | el área es *CENTURION* | la lista esperada se configura en `amex.usuario.areas` |
-| PF_CP_013 | 5 tipos de usuario (Administrador Apex, Supervisor AXP, Usuario AXP, Supervisor Agencia, Usuario Agencia) | 2 tipos (*Administrador Centurion*, *Usuario Centurion*), y la lista se llena **después** de elegir el área | la lista esperada se configura en `amex.usuario.tipos` |
+| PF_CP_012 y PF_CP_013 | área *Ventas* con 5 tipos de usuario | depende del perfil: con `admin@na-at.com` es *VENTAS* con los 5 tipos de la matriz, y con `admin-centurion@na-at.com` es *CENTURION* con 2 tipos | resuelto: la lista esperada se declara **por usuario** (ver abajo); ya no es una diferencia con la matriz |
 | PF_CP_018 | teléfono móvil solo numérico | acepta letras (`abc12de345`) | **DEF_02**, grupo `defecto_conocido` (excluido de la regresión) |
 | PF_CP_114 | CUIL de 11 caracteres | se muestra con máscara `20-12345678-9`: 13 caracteres = 11 dígitos | resuelto: el caso cuenta dígitos y ya no es `regla_por_confirmar` |
 | PF_CP_122–123 | check *Condicionada a ingresos* en el alta de solicitud | ese check no está hoy en la pantalla | `PF_CP_122` lo reporta como diferencia (ola 6, sección 7.5); `PF_CP_123` depende de él |
@@ -471,16 +470,20 @@ Cuando negocio confirme otro área o otros tipos de usuario se ajusta
 ### Listas que dependen del usuario (PF_CP_012 y PF_CP_013)
 
 Las opciones de *Area* y *Tipo de usuario* **cambian según el perfil con el que
-se ejecuta**: con `admin-centurion` aparece *CENTURION* y con otro perfil puede
-aparecer *Ventas*. Para que el caso no falle al cambiar de usuario, la lista
-esperada se puede declarar por usuario, y gana sobre la lista general:
+se ejecuta**: `admin-centurion@na-at.com` ve *CENTURION* con 2 tipos y
+`admin@na-at.com` ve *VENTAS* con los 5 tipos que describe la matriz. Para que
+el caso no falle al cambiar de usuario, la lista esperada se declara por
+usuario, y gana sobre la lista general:
 
 ```properties
 amex.usuario.areas=CENTURION                                  # respaldo general
-amex.usuario.areas.admin-centurion@na-at.com=CENTURION         # por usuario
-amex.usuario.areas.otro-usuario@na-at.com=Ventas               # otro perfil
-amex.usuario.tipos.otro-usuario@na-at.com=Usuario AXP,Supervisor AXP
+amex.usuario.areas.admin-centurion@na-at.com=CENTURION
+amex.usuario.tipos.admin-centurion@na-at.com=Administrador Centurion,Usuario Centurion
+amex.usuario.areas.admin@na-at.com=VENTAS
+amex.usuario.tipos.admin@na-at.com=Administrador Apex,Supervisor AXP,Usuario AXP,Supervisor Agencia,Usuario Agencia
 ```
+
+Al agregar un usuario nuevo se copia el mismo par de líneas con su correo.
 
 La clave se arma con `amex.usuario.areas.` + el correo de `amex.usuario`. Si no
 existe una clave para ese correo se usa `amex.usuario.areas` tal cual, así que
