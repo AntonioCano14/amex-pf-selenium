@@ -743,13 +743,18 @@ la regresión; para verlas: `mvn test -Dgroups=defecto_conocido`):
 
 | Caso | La matriz dice | El detalle hace en QA |
 |---|---|---|
-| `PF_CP_033`–`035` (mínimo 1 carácter) | el campo es obligatorio | **DEF_04**: al vaciar Nombre(s), Apellidos o Cargo, GUARDAR sigue habilitado y el campo no se marca en rojo (en el alta sí se deshabilita) |
 | `PF_CP_037` | teléfono móvil solo numérico | **DEF_02**, el mismo defecto del alta (PF_CP_018): acepta letras (`abc12de345`) |
 
-Detalle del correo: el campo **filtra** algunos caracteres inválidos en lugar de
-marcar error (por ejemplo el espacio de `pruebita qa@qa.com`); cuando el campo
-cambia lo capturado, la prueba no lo cuenta como formato inválido porque ya no es
-el texto que se quiso probar.
+Dos comportamientos del detalle que conviene conocer al mantener estos casos:
+
+- Para vaciar un campo **no se usa `clear()`**: así el formulario de Angular no se
+  entera del cambio y sus validaciones no se disparan (parecería que GUARDAR
+  queda habilitado con el campo vacío, cuando en la pantalla sí se deshabilita).
+  `PaginaFormulario.limpiar(...)` borra carácter por carácter con BACKSPACE.
+- El campo de correo **filtra** algunos caracteres inválidos en lugar de marcar
+  error (por ejemplo el espacio de `pruebita qa@qa.com`); cuando el campo cambia
+  lo capturado, la prueba no lo cuenta como formato inválido porque ya no es el
+  texto que se quiso probar. Confirmado con negocio: así se queda.
 
 ## 8. Resultado de la última ejecución
 

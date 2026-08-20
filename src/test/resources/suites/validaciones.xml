@@ -9,8 +9,8 @@
 
   Excluye:
   - defecto_conocido    : falla por un defecto abierto de la aplicacion
-                          (DEF_02 telefono movil con letras, DEF_04 el detalle no
-                          valida los campos obligatorios)
+                          (DEF_02 telefono movil con letras, en el alta y en el
+                          detalle)
   - regla_por_confirmar : la matriz y la aplicacion no coinciden
 
   Ejecutar:  mvn test -Dsuite=validaciones

@@ -110,14 +110,7 @@ public class UsuariosDetalleValidacionesPruebas extends PruebaBase {
                 caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
     }
 
-    /**
-     * HALLAZGO DEF_04: el detalle no valida los campos obligatorios como el alta.
-     * Al dejar Nombre(s), Apellidos o Cargo vacios el boton GUARDAR sigue
-     * habilitado y el campo no se marca en rojo, y la matriz pide minimo un
-     * caracter. Queda en "defecto_conocido" (fuera de la regresion) hasta que se
-     * corrija o negocio confirme la regla.
-     */
-    @Test(groups = {"validaciones", "usuarios", "defecto_conocido"},
+    @Test(groups = {"validaciones", "usuarios"},
             dataProvider = "camposDeTextoDelDetalle",
             description = "PF_CP_033-035 El campo del detalle es obligatorio (minimo un caracter)")
     public void elCampoVacioDelDetalleNoDebePermitirGuardar(String caso, By campo, int maximo) {

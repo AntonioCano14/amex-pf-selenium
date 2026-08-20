@@ -731,7 +731,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         Assert.assertEquals(quedo, "Juan",
                 caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
 ```
-- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios)
 - **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
 - **Renglon de la tabla para este caso:** `{"PF_CP_033 Nombres", Selectores.USUARIO_DETALLE_CAMPO_NOMBRES, 35}`
@@ -777,7 +777,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         Assert.assertEquals(quedo, "Juan",
                 caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
 ```
-- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios)
 - **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
 - **Renglon de la tabla para este caso:** `{"PF_CP_034 Apellidos", Selectores.USUARIO_DETALLE_CAMPO_APELLIDOS, 35}`
@@ -823,7 +823,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         Assert.assertEquals(quedo, "Juan",
                 caso + ": se escribio \"Juan123!@#\" y el campo dejo \"" + quedo + "\".");
 ```
-- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios, defecto_conocido)
+- **Prueba:** `UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar`  (etiquetas: validaciones, usuarios)
 - **Lo que valida el codigo:** El campo del detalle es obligatorio (minimo un caracter)
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosDetalleValidacionesPruebas#elCampoVacioDelDetalleNoDebePermitirGuardar'`
 - **Renglon de la tabla para este caso:** `{"PF_CP_035 Cargo", Selectores.USUARIO_DETALLE_CAMPO_CARGO, 35}`

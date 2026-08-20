@@ -2,6 +2,7 @@ package com.amex.pf.paginas;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
 
 /**
  * Acciones comunes a los formularios de la aplicacion (alta de solicitud y alta
@@ -44,8 +45,18 @@ public abstract class PaginaFormulario extends PaginaBase {
         return valor.replaceAll("\\D", "").length();
     }
 
+    /**
+     * Vacia el campo borrando caracter por caracter. No usa clear(): al limpiar asi
+     * el formulario no se entera del cambio y sus validaciones (campo obligatorio,
+     * boton GUARDAR deshabilitado) no se disparan.
+     */
     public void limpiar(By campo) {
-        verVisible(campo).clear();
+        WebElement elemento = verVisible(campo);
+        String valor = elemento.getDomProperty("value");
+        int cuantos = valor == null ? 0 : valor.length();
+        for (int i = 0; i < cuantos; i++) {
+            elemento.sendKeys(Keys.BACK_SPACE);
+        }
     }
 
     /** Saca el foco del campo para que se muestren las validaciones del formulario. */
