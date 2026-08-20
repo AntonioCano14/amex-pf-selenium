@@ -42,8 +42,7 @@ public class LoginPruebas extends PruebaBase {
     public void pfCp003UsuarioYContrasenaIncorrectos() {
         PaginaLogin login = new PaginaLogin();
         login.iniciarSesionCon(USUARIO_INEXISTENTE, CONTRASENA_INCORRECTA);
-        Assert.assertTrue(login.textoDelModal().contains(PaginaLogin.TEXTO_CREDENCIALES_INVALIDAS),
-                "Se esperaba el mensaje \"" + PaginaLogin.TEXTO_CREDENCIALES_INVALIDAS + "\".");
+        Assert.assertTrue(login.textoDelModal().contains(PaginaLogin.TEXTO_CREDENCIALES_INVALIDAS));
         login.aceptarModal();
         Assert.assertTrue(login.sigueEnLaPantallaDeLogin(), "No debio ingresar a la aplicacion.");
     }
