@@ -96,7 +96,8 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 ```java
         PaginaLogin login = new PaginaLogin();
         login.iniciarSesionCon(USUARIO_INEXISTENTE, CONTRASENA_INCORRECTA);
-        Assert.assertTrue(login.textoDelModal().contains(PaginaLogin.TEXTO_CREDENCIALES_INVALIDAS));
+        Assert.assertTrue(login.textoDelModal().contains(PaginaLogin.TEXTO_CREDENCIALES_INVALIDAS),
+                "El mensaje no debe revelar si el usuario existe.");
         login.aceptarModal();
         Assert.assertTrue(login.sigueEnLaPantallaDeLogin(), "No debio ingresar a la aplicacion.");
 ```
@@ -141,11 +142,30 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `NavegacionPruebas#pfCp008GraficaDeInicio`  (etiquetas: navegacion, humo)
 - **Lo que valida el codigo:** Pantalla de Inicio con la grafica de solicitudes
 - **Correr solo este caso:** `mvn test -Dtest='NavegacionPruebas#pfCp008GraficaDeInicio'`
-- **Pasos que ejecuta:** `laDireccionDebeContener` -> `debeVerseUnaGrafica`
-- **Verificaciones:** 2
+- **Pasos que ejecuta:** `laDireccionDebeContener` -> `debeVerseUnaGrafica` -> `leyendasDeLaGrafica` -> `detallePorEstatusDeLaGrafica` -> `toUpperCase` -> `startsWith` -> `entrySet` -> `getKey` -> `findFirst` -> `orElse` -> `endsWith`
+- **Verificaciones:** 4
 
 ```java
         inicio.laDireccionDebeContener("expedient/home").debeVerseUnaGrafica();
+
+        List<String> leyendas = inicio.leyendasDeLaGrafica();
+        Map<String, String> detalle = inicio.detallePorEstatusDeLaGrafica();
+        for (String estatus : Configuracion.lista("amex.inicio.estatus")) {
+            Assert.assertTrue(leyendas.stream()
+                            .anyMatch(leyenda -> leyenda.toUpperCase()
+                                    .startsWith(estatus.toUpperCase() + " -")),
+                    "La grafica no muestra la cantidad de solicitudes del estatus \"" + estatus
+                            + "\". Muestra hoy: " + leyendas + ".");
+
+            String porcentaje = detalle.entrySet().stream()
+                    .filter(dato -> dato.getKey().equalsIgnoreCase(estatus))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse("");
+            Assert.assertTrue(porcentaje.endsWith("%"),
+                    "La grafica no muestra el porcentaje del estatus \"" + estatus
+                            + "\". Muestra hoy: " + detalle + ".");
+        }
 ```
 
 ## PF_CP_009 — Validacion de pantalla de inicio
@@ -155,11 +175,18 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `NavegacionPruebas#pfCp009TablaDeInicio`  (etiquetas: navegacion)
 - **Lo que valida el codigo:** Pantalla de Inicio con la tabla de solicitudes
 - **Correr solo este caso:** `mvn test -Dtest='NavegacionPruebas#pfCp009TablaDeInicio'`
-- **Pasos que ejecuta:** `laPantallaDebeTenerUnaTablaConInformacion`
-- **Verificaciones:** 1
+- **Pasos que ejecuta:** `laPantallaDebeTenerUnaTablaConInformacion` -> `encabezadosDeLaTabla`
+- **Verificaciones:** 2
 
 ```java
         inicio.laPantallaDebeTenerUnaTablaConInformacion();
+
+        List<String> actuales = inicio.encabezadosDeLaTabla();
+        for (String columna : Configuracion.lista("amex.inicio.columnas")) {
+            Assert.assertTrue(actuales.stream().anyMatch(actual -> actual.equalsIgnoreCase(columna)),
+                    "La tabla de Inicio no muestra la columna \"" + columna
+                            + "\". Muestra hoy: " + actuales + ".");
+        }
 ```
 
 ## PF_CP_010 — Validación de la pantalla de Usuarios
@@ -169,12 +196,13 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `NavegacionPruebas#pfCp010PantallaUsuarios`  (etiquetas: navegacion)
 - **Lo que valida el codigo:** Pantalla de Usuarios con sus botones
 - **Correr solo este caso:** `mvn test -Dtest='NavegacionPruebas#pfCp010PantallaUsuarios'`
-- **Pasos que ejecuta:** `irAlMenu` -> `laDireccionDebeContener` -> `laPantallaDebeTenerUnaTablaConInformacion`
-- **Verificaciones:** 2
+- **Pasos que ejecuta:** `irAlMenu` -> `laDireccionDebeContener` -> `losBotonesDebenEstarVisibles` -> `laPantallaDebeTenerUnaTablaConInformacion`
+- **Verificaciones:** 3
 
 ```java
         inicio.irAlMenu("Usuarios")
                 .laDireccionDebeContener("expedient/users")
+                .losBotonesDebenEstarVisibles(Configuracion.lista("amex.usuarios.botones"))
                 .laPantallaDebeTenerUnaTablaConInformacion();
 ```
 

@@ -1,9 +1,13 @@
 package com.amex.pf.pruebas;
 
+import java.util.List;
+import java.util.Map;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.amex.pf.base.Configuracion;
 import com.amex.pf.base.PruebaBase;
 import com.amex.pf.paginas.PaginaLogin;
 import com.amex.pf.paginas.PaginaPrincipal;
@@ -25,18 +29,45 @@ public class NavegacionPruebas extends PruebaBase {
             description = "PF_CP_008 Pantalla de Inicio con la grafica de solicitudes")
     public void pfCp008GraficaDeInicio() {
         inicio.laDireccionDebeContener("expedient/home").debeVerseUnaGrafica();
+
+        List<String> leyendas = inicio.leyendasDeLaGrafica();
+        Map<String, String> detalle = inicio.detallePorEstatusDeLaGrafica();
+        for (String estatus : Configuracion.lista("amex.inicio.estatus")) {
+            Assert.assertTrue(leyendas.stream()
+                            .anyMatch(leyenda -> leyenda.toUpperCase()
+                                    .startsWith(estatus.toUpperCase() + " -")),
+                    "La grafica no muestra la cantidad de solicitudes del estatus \"" + estatus
+                            + "\". Muestra hoy: " + leyendas + ".");
+
+            String porcentaje = detalle.entrySet().stream()
+                    .filter(dato -> dato.getKey().equalsIgnoreCase(estatus))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse("");
+            Assert.assertTrue(porcentaje.endsWith("%"),
+                    "La grafica no muestra el porcentaje del estatus \"" + estatus
+                            + "\". Muestra hoy: " + detalle + ".");
+        }
     }
 
     @Test(groups = "navegacion", description = "PF_CP_009 Pantalla de Inicio con la tabla de solicitudes")
     // Faltaria agregar que se haga un scroll para que se pueda visualizar la tabla y validar que si este presente
     public void pfCp009TablaDeInicio() {
         inicio.laPantallaDebeTenerUnaTablaConInformacion();
+
+        List<String> actuales = inicio.encabezadosDeLaTabla();
+        for (String columna : Configuracion.lista("amex.inicio.columnas")) {
+            Assert.assertTrue(actuales.stream().anyMatch(actual -> actual.equalsIgnoreCase(columna)),
+                    "La tabla de Inicio no muestra la columna \"" + columna
+                            + "\". Muestra hoy: " + actuales + ".");
+        }
     }
 
     @Test(groups = "navegacion", description = "PF_CP_010 Pantalla de Usuarios con sus botones")
     public void pfCp010PantallaUsuarios() {
         inicio.irAlMenu("Usuarios")
                 .laDireccionDebeContener("expedient/users")
+                .losBotonesDebenEstarVisibles(Configuracion.lista("amex.usuarios.botones"))
                 .laPantallaDebeTenerUnaTablaConInformacion();
     }
 
