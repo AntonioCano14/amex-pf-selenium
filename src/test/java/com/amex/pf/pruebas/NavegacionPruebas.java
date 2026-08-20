@@ -1,9 +1,12 @@
 package com.amex.pf.pruebas;
 
+import java.util.List;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.amex.pf.base.Configuracion;
 import com.amex.pf.base.PruebaBase;
 import com.amex.pf.paginas.PaginaLogin;
 import com.amex.pf.paginas.PaginaPrincipal;
@@ -30,6 +33,13 @@ public class NavegacionPruebas extends PruebaBase {
     @Test(groups = "navegacion", description = "PF_CP_009 Pantalla de Inicio con la tabla de solicitudes")
     public void pfCp009TablaDeInicio() {
         inicio.laPantallaDebeTenerUnaTablaConInformacion();
+
+        List<String> actuales = inicio.encabezadosDeLaTabla();
+        for (String columna : Configuracion.lista("amex.inicio.columnas")) {
+            Assert.assertTrue(actuales.stream().anyMatch(actual -> actual.equalsIgnoreCase(columna)),
+                    "La tabla de Inicio no muestra la columna \"" + columna
+                            + "\". Muestra hoy: " + actuales + ".");
+        }
     }
 
     @Test(groups = "navegacion", description = "PF_CP_010 Pantalla de Usuarios con sus botones")
