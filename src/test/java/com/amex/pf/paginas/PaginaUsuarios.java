@@ -148,14 +148,18 @@ public class PaginaUsuarios extends PaginaFormulario {
         return this;
     }
 
-    /** Areas que debe mostrar la lista, configurables en amex.usuario.areas. */
+    /**
+     * Areas que debe mostrar la lista. Dependen del perfil con el que se ejecuta
+     * (CENTURION con un administrador, Ventas con otro perfil), por eso se
+     * configuran en amex.usuario.areas o en amex.usuario.areas.CORREO_DEL_USUARIO.
+     */
     public static String[] areasEsperadas() {
-        return Configuracion.lista("amex.usuario.areas");
+        return Configuracion.listaDelUsuario("amex.usuario.areas");
     }
 
-    /** Tipos de usuario esperados, configurables en amex.usuario.tipos. */
+    /** Tipos de usuario esperados, configurables igual que las areas. */
     public static String[] tiposDeUsuarioEsperados() {
-        return Configuracion.lista("amex.usuario.tipos");
+        return Configuracion.listaDelUsuario("amex.usuario.tipos");
     }
 
     public PaginaUsuarios abrirElAltaDeUsuario() {

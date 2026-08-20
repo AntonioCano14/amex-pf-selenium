@@ -82,4 +82,14 @@ public final class Configuracion {
     public static String[] lista(String clave) {
         return obtener(clave).split("\\s*,\\s*");
     }
+
+    /**
+     * Lista que depende del usuario con el que se ejecuta: primero busca
+     * "clave.usuario" (por ejemplo amex.usuario.areas.admin-centurion@na-at.com)
+     * y si no existe usa la clave general. Cada perfil ve opciones distintas.
+     */
+    public static String[] listaDelUsuario(String clave) {
+        String delUsuario = obtener(clave + "." + usuario());
+        return delUsuario.isBlank() ? lista(clave) : delUsuario.split("\\s*,\\s*");
+    }
 }

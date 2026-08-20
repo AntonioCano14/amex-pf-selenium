@@ -66,7 +66,7 @@ public final class UsuarioDePrueba {
 
     /** Area con la que se da de alta (amex.usuario.areas, primera de la lista). */
     public static String area() {
-        return Configuracion.lista("amex.usuario.areas")[0];
+        return Configuracion.listaDelUsuario("amex.usuario.areas")[0];
     }
 
     /** Tipo de usuario con el que se da de alta (amex.datos.usuario.tipo). */

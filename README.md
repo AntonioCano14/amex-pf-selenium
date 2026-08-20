@@ -468,6 +468,34 @@ Cuando negocio confirme otro área o otros tipos de usuario se ajusta
 `configuracion.properties`; cuando se corrija DEF_02 se quita el grupo
 `defecto_conocido` del caso PF_CP_018.
 
+### Listas que dependen del usuario (PF_CP_012 y PF_CP_013)
+
+Las opciones de *Area* y *Tipo de usuario* **cambian según el perfil con el que
+se ejecuta**: con `admin-centurion` aparece *CENTURION* y con otro perfil puede
+aparecer *Ventas*. Para que el caso no falle al cambiar de usuario, la lista
+esperada se puede declarar por usuario, y gana sobre la lista general:
+
+```properties
+amex.usuario.areas=CENTURION                                  # respaldo general
+amex.usuario.areas.admin-centurion@na-at.com=CENTURION         # por usuario
+amex.usuario.areas.otro-usuario@na-at.com=Ventas               # otro perfil
+amex.usuario.tipos.otro-usuario@na-at.com=Usuario AXP,Supervisor AXP
+```
+
+La clave se arma con `amex.usuario.areas.` + el correo de `amex.usuario`. Si no
+existe una clave para ese correo se usa `amex.usuario.areas` tal cual, así que
+nada cambia para quien ya lo tenía configurado. También se puede indicar en la
+corrida, sin editar el archivo:
+
+```bash
+mvn test -Dtest='UsuariosValidacionesPruebas#pfCp012ListaArea' \
+    -Damex.usuario=otro-usuario@na-at.com -Damex.usuario.areas=Ventas
+```
+
+Si la lista no coincide, el mensaje del caso dice **qué falta y qué muestra hoy
+la aplicación**, que es el dato con el que se completa la configuración de un
+usuario nuevo.
+
 ## 7.3 Ola 4 — descargas de archivos
 
 La suite `descargas` revisa los archivos que entrega la aplicación: el Excel de
