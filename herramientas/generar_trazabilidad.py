@@ -25,15 +25,12 @@ SALIDA_MD = os.path.join(RAIZ, "TRAZABILIDAD.md")
 SALIDA_CSV = os.path.join(RAIZ, "TRAZABILIDAD.csv")
 SALIDA_GUIA = os.path.join(RAIZ, "GUIA_CASO_POR_CASO.md")
 
-ID = r"PF_CP_\d+(?:[-/]\d+)*"
+ID = r"(?:PF_CP|CAM)_\d+(?:[-/]\d+)*"
 ID_INTERNO = r"(?:VAL|SEG|DEF)_\d+"
 
 # Motivo por el que un caso de la matriz todavia no esta automatizado. Al automatizar
 # un caso se borra su renglon de aqui.
 MOTIVOS = {
-    "PF_CP_005": "La matriz lo marca Cancelado.",
-    "PF_CP_006": "La matriz lo marca Cancelado.",
-    "PF_CP_007": "La matriz lo marca Cancelado.",
     "PF_CP_023": "Carga masiva: falta el layout oficial valido.",
     "PF_CP_024": "Carga masiva: falta el layout oficial invalido.",
     "PF_CP_025": "Carga masiva: falta el layout oficial invalido.",
@@ -48,6 +45,8 @@ EXTRA = {
     "VAL_": "Validacion de campos del login que la matriz no numera.",
     "SEG_": "Comportamiento de sesion.",
     "DEF_": "Defecto abierto de la aplicacion.",
+    "CAM_": "Caso de Cambiar contraseña que la matriz V2 trae sin ID: "
+            "CAM_00x es un ID propuesto, falta confirmarlo en la matriz.",
 }
 
 
@@ -69,7 +68,8 @@ def expandir(identificador):
     """
     if "/" in identificador:
         partes = identificador.split("/")
-        return [partes[0]] + ["PF_CP_%03d" % int(n) for n in partes[1:]]
+        prefijo = partes[0].rsplit("_", 1)[0]
+        return [partes[0]] + ["%s_%03d" % (prefijo, int(n)) for n in partes[1:]]
     if "-" in identificador:
         inicio, fin = identificador.split("-")
         numero = int(inicio.rsplit("_", 1)[1])
@@ -151,7 +151,8 @@ def limpiar(texto):
 
 
 def sin_el_id(descripcion):
-    return re.sub(r"^(%s|%s)\s*" % (ID, ID_INTERNO), "", descripcion).strip()
+    # Puede encabezar varios IDs seguidos ("PF_CP_007/CAM_005 ..."): se quitan todos.
+    return re.sub(r"^((%s|%s)[/ ]*)+" % (ID, ID_INTERNO), "", descripcion).strip()
 
 
 def escribir_csv(renglones):

@@ -318,7 +318,8 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 | `humo` | mínimo indispensable, corre en cada despliegue |
 | `login`, `navegacion`, `validaciones`, `catalogos`, `usuarios`, `consultas` | por módulo de la matriz |
 | `descargas` | archivos que entrega la aplicación (Excel, layout y ZIP) |
-| `escribe_datos` | crea o modifica información (excluido de la regresión, salvo `PF_CP_039`–`045`) |
+| `cambio_contrasena` | pantalla *Cambiar contraseña* (nunca presiona GUARDAR) |
+| `escribe_datos` | crea o modifica información (excluido de la regresión; hoy solo `PF_CP_020`) |
 | `defecto_conocido` | falla por un defecto abierto de la aplicación |
 | `regla_por_confirmar` | la matriz y la aplicación no coinciden y falta definición |
 
@@ -417,7 +418,8 @@ en `resultados/evidencias/`.
 
 | Clase | Casos de la matriz |
 |---|---|
-| `LoginPruebas` | PF_CP_001–004, VAL_001–004, DEF_01 |
+| `LoginPruebas` | PF_CP_001–004, VAL_001–006, DEF_01, DEF_001, DEF_002 |
+| `CambioDeContrasenaPruebas` | PF_CP_005, 006, 007 y CAM_001–CAM_007 (*Cambiar contraseña*) |
 | `NavegacionPruebas` | PF_CP_008, 009, 010, 046, 101, 108, 147, 151, 153, 159, SEG_001 |
 | `ValidacionesDeCamposPruebas` | PF_CP_111–120 (Solicitudes: longitudes, tipo de carácter, fecha, dirección, PEP) |
 | `UsuariosValidacionesPruebas` | PF_CP_011–019 y 021 (alta de usuario: listas, longitudes, obligatorios, formato de correo, teléfonos) |
@@ -613,11 +615,13 @@ Reglas de uso, importantes:
 - La aplicación **no permite borrar** usuarios ni elementos de catálogo: cada caso
   termina dejando **inactivo** lo que creó (bloque `finally`), incluso si falla a la
   mitad. Por eso el ambiente acumula registros `ZZAUTOQA …` inactivos.
-- Está **fuera de la regresión** (grupo `escribe_datos`), **excepto**
-  `PF_CP_039`–`045` (detalle del usuario, GENERAR CONTRASEÑA, desactivar y
-  activar): esos dos casos sí corren en la regresión, así que cada corrida deja
-  dos usuarios `ZZAUTOQA` inactivos más. `PF_CP_020` (el alta) sigue fuera porque
-  el alta ya se ejecuta dentro de esos dos casos.
+- **Casi toda la ola 5 entra hoy a la regresión**: `PF_CP_039`–`045` (detalle del
+  usuario, GENERAR CONTRASEÑA, desactivar y activar) y los 28 casos de catálogos
+  `PF_CP_048`–`100` ya **no** llevan `escribe_datos`, porque son casos que la
+  matriz pide validar en cada no afectación. Consecuencia en datos: cada regresión
+  deja **dos usuarios `ZZAUTOQA` inactivos y un elemento `ZZAUTOQA` inactivo en
+  cada uno de los siete catálogos**. Solo `PF_CP_020` (el alta suelta) sigue fuera,
+  porque el alta ya ocurre dentro de `PF_CP_039`.
 
 Qué datos usa cada catálogo está en una sola clase, `datos/ElementoDeCatalogo`
 (placeholder del campo → valor); los del usuario, en `datos/UsuarioDePrueba`. Para
@@ -775,6 +779,54 @@ Dos comportamientos del detalle que conviene conocer al mantener estos casos:
   error (por ejemplo el espacio de `pruebita qa@qa.com`); cuando el campo cambia
   lo capturado, la prueba no lo cuenta como formato inválido porque ya no es el
   texto que se quiso probar. Confirmado con negocio: así se queda.
+
+## 7.7 Cambiar contraseña (PF_CP_005–007 y CAM_001–CAM_007) y nuevos casos de login
+
+Los casos de la matriz V2 de la pantalla *Cambiar contraseña* están en
+`CambioDeContrasenaPruebas`; su pantalla es `PaginaCambioDeContrasena` (menú
+*Hola, [usuario]* → *Cambiar contraseña*, URL `#/expedient/password-change`).
+
+**Ninguno cambia la contraseña de nadie**: se escriben valores de ejemplo, se
+comprueba lo que muestra el formulario y se sale siempre con CANCELAR (también con
+un `@AfterMethod`, si el caso falló). `CAM_007` únicamente verifica que **GUARDAR
+se habilite** con los tres campos llenos y válidos, **sin presionarlo** (decisión
+acordada con QA).
+
+```
+mvn test -Dsuite=login                                            # login + cambio de contraseña
+mvn test -Dtest='CambioDeContrasenaPruebas'                       # los 10 casos
+mvn test -Dtest='CambioDeContrasenaPruebas#cam007CamposLlenosYValidos'
+```
+
+| Caso | Qué valida la prueba |
+|---|---|
+| `PF_CP_005` | el menú del usuario muestra *Cambiar contraseña* y *Salir*, cada una con su icono |
+| `PF_CP_006` | título, requisitos de seguridad, los tres campos y los botones CANCELAR y GUARDAR (deshabilitado al entrar) |
+| `PF_CP_007` / `CAM_005` | *Nueva contraseña* y *Confirmar contraseña* marcan en rojo cada contraseña de `amex.contrasena.invalidas` y dejan GUARDAR deshabilitado |
+| `CAM_001` | los tres campos vacíos se marcan en rojo y GUARDAR sigue deshabilitado |
+| `CAM_002`–`CAM_004` | el símbolo de ojo muestra y vuelve a ocultar el texto de cada campo (`type` pasa de `password` a `text` y regresa) |
+| `CAM_006` | *Confirmar contraseña* distinta a *Nueva contraseña*: campo en rojo y GUARDAR deshabilitado |
+| `CAM_007` | con los tres campos válidos no hay error y **GUARDAR se habilita** (no se presiona) |
+
+Los requisitos que se buscan en la pantalla y las contraseñas de ejemplo se
+ajustan **sin tocar Java**, en `configuracion.properties`:
+`amex.contrasena.requisitos` (separados por `|`, porque los textos llevan comas),
+`amex.contrasena.valida` y `amex.contrasena.invalidas` (cada ejemplo rompe un
+requisito distinto: corta, sin número ni especial, sin especial, y con tres
+caracteres iguales seguidos).
+
+`CAM_001`–`CAM_007` **son IDs propuestos**: la matriz V2 trae esos siete casos sin
+ID. Al asignarles el oficial se cambia la descripción del `@Test` y el renglón de
+`datos/matriz_funcional.csv`, y se vuelve a generar la trazabilidad.
+
+Casos nuevos de login (mismos archivos de siempre, `LoginPruebas` + `PaginaLogin`):
+
+| Caso | Qué valida |
+|---|---|
+| `VAL_005` | correo de menos de 5 caracteres (`a@b`): mensaje *El número mínimo de caracteres son: 5* y botón deshabilitado |
+| `VAL_006` | contraseña de menos de 8 caracteres: mensaje *…son: 8* y botón deshabilitado |
+| `DEF_001` | correo con `# $ % & / ( ) [ ]`: se rechaza con *Introduce un correo válido* |
+| `DEF_002` | correo con `- _ .`: se acepta sin mensaje y el botón se habilita |
 
 ## 8. Resultado de la última ejecución
 

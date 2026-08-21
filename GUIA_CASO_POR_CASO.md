@@ -64,6 +64,28 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         Assert.assertTrue(login.sigueEnLaPantallaDeLogin(), "No debio ingresar a la aplicacion.");
 ```
 
+## CAM_001 — Validacion campos vacios
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** Los tres campos se marcan en rojo y GUARDAR sigue deshabilitado
+- **Prueba:** `CambioDeContrasenaPruebas#cam001CamposVacios`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Los tres campos vacios se pintan de rojo y GUARDAR sigue deshabilitado
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#cam001CamposVacios'`
+- **Pasos que ejecuta:** `abrir` -> `tocarYDejarVacio` -> `elCampoSeMarcoEnRojo` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 2
+
+```java
+        pantalla.abrir();
+        for (By campo : new By[] {Selectores.CONTRASENA_ACTUAL, Selectores.CONTRASENA_NUEVA,
+                Selectores.CONTRASENA_CONFIRMAR}) {
+            pantalla.tocarYDejarVacio(campo);
+            Assert.assertTrue(pantalla.elCampoSeMarcoEnRojo(campo),
+                    "El campo quedo vacio y no se marco en rojo.");
+        }
+        Assert.assertFalse(pantalla.elBotonGuardarEstaHabilitado(),
+                "Con los tres campos vacios GUARDAR debe estar deshabilitado.");
+```
+
 ## PF_CP_002 — Validación de inicio de sesión con usuario incorrecto, contraseña correcta
 
 - **Modulo:** Expediente Login
@@ -81,6 +103,31 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                 "El mensaje no debe revelar si el usuario existe.");
         login.aceptarModal();
         Assert.assertTrue(login.sigueEnLaPantallaDeLogin(), "No debio ingresar a la aplicacion.");
+```
+
+## CAM_002 — Ver u ocultar Contraseña actual
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** La contraseña se muestra en texto y al presionar de nuevo vuelve a ocultarse
+- **Prueba:** `CambioDeContrasenaPruebas#verUOcultarLaContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Ver u ocultar la contrasena con el simbolo de ojo
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#verUOcultarLaContrasena'`
+- **Renglon de la tabla para este caso:** `{"CAM_002", Selectores.CONTRASENA_ACTUAL, "Contraseña actual"}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposConOjo")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `abrir` -> `escribirEnElCampo` -> `comoSeMuestraElCampo` -> `presionarElOjo`
+- **Verificaciones:** 3
+
+```java
+        pantalla.abrir().escribirEnElCampo(campo,
+                Configuracion.obtener("amex.contrasena.valida"));
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "El campo " + etiqueta + " debe venir oculto.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "text",
+                "Al presionar el ojo la contrasena de " + etiqueta + " debe verse.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "Al presionar el ojo otra vez la contrasena de " + etiqueta + " debe ocultarse.");
 ```
 
 ## PF_CP_003 — Validación de inicio de sesión con usuario incorrecto, contraseña incorrecta
@@ -102,6 +149,31 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         Assert.assertTrue(login.sigueEnLaPantallaDeLogin(), "No debio ingresar a la aplicacion.");
 ```
 
+## CAM_003 — Ver u ocultar Nueva contraseña
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** La contraseña se muestra en texto y al presionar de nuevo vuelve a ocultarse
+- **Prueba:** `CambioDeContrasenaPruebas#verUOcultarLaContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Ver u ocultar la contrasena con el simbolo de ojo
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#verUOcultarLaContrasena'`
+- **Renglon de la tabla para este caso:** `{"CAM_003", Selectores.CONTRASENA_NUEVA, "Nueva contraseña"}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposConOjo")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `abrir` -> `escribirEnElCampo` -> `comoSeMuestraElCampo` -> `presionarElOjo`
+- **Verificaciones:** 3
+
+```java
+        pantalla.abrir().escribirEnElCampo(campo,
+                Configuracion.obtener("amex.contrasena.valida"));
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "El campo " + etiqueta + " debe venir oculto.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "text",
+                "Al presionar el ojo la contrasena de " + etiqueta + " debe verse.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "Al presionar el ojo otra vez la contrasena de " + etiqueta + " debe ocultarse.");
+```
+
 ## PF_CP_004 — Validación de inicio de sesión con usuario correcto, contraseña correcta
 
 - **Modulo:** Expediente Login
@@ -117,23 +189,167 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
         inicio.debeVerseElTexto("Hola,");
 ```
 
-## PF_CP_005 — Validación de la recuperación de contraseña
-
-- **Modulo:** Expediente Login
-- **Lo que pide la matriz:** Redirige a una pantalla para la recuperacion de contraseña
-- **Automatizado:** no. La matriz lo marca Cancelado.
-
-## PF_CP_006 — Cambiar contraseña
+## CAM_004 — Ver u ocultar Confirmar contraseña
 
 - **Modulo:** Cambiar contraseña
-- **Lo que pide la matriz:** El sistema muestra una pantalla para colocar la contraseña actual y la nueva contraseña, con el botón Guardar deshabilitado y el botón Cancelar
-- **Automatizado:** no. La matriz lo marca Cancelado.
+- **Lo que pide la matriz:** La contraseña se muestra en texto y al presionar de nuevo vuelve a ocultarse
+- **Prueba:** `CambioDeContrasenaPruebas#verUOcultarLaContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Ver u ocultar la contrasena con el simbolo de ojo
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#verUOcultarLaContrasena'`
+- **Renglon de la tabla para este caso:** `{"CAM_004", Selectores.CONTRASENA_CONFIRMAR, "Confirmar contraseña"}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposConOjo")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `abrir` -> `escribirEnElCampo` -> `comoSeMuestraElCampo` -> `presionarElOjo`
+- **Verificaciones:** 3
+
+```java
+        pantalla.abrir().escribirEnElCampo(campo,
+                Configuracion.obtener("amex.contrasena.valida"));
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "El campo " + etiqueta + " debe venir oculto.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "text",
+                "Al presionar el ojo la contrasena de " + etiqueta + " debe verse.");
+        pantalla.presionarElOjo(campo);
+        Assert.assertEquals(pantalla.comoSeMuestraElCampo(campo), "password",
+                "Al presionar el ojo otra vez la contrasena de " + etiqueta + " debe ocultarse.");
+```
+
+## PF_CP_005 — Se muestra boton para cambiar contraseña
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** Se muestran las opciones "Cambiar contraseña" y "Salir" con sus iconos respectivos
+- **Prueba:** `CambioDeContrasenaPruebas#pfCp005OpcionesDelMenuDelUsuario`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** El menu del usuario muestra Cambiar contraseña y Salir con sus iconos
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#pfCp005OpcionesDelMenuDelUsuario'`
+- **Pasos que ejecuta:** `abrirElMenuDelUsuario` -> `elMenuDebeMostrarLaOpcion` -> `laOpcionDebeTraerIcono`
+- **Verificaciones:** 4
+
+```java
+        pantalla.abrirElMenuDelUsuario()
+                .elMenuDebeMostrarLaOpcion("Cambiar contraseña")
+                .elMenuDebeMostrarLaOpcion("Salir")
+                .laOpcionDebeTraerIcono("Cambiar contraseña")
+                .laOpcionDebeTraerIcono("Salir");
+```
+
+## CAM_005 — Caracteristicas Confirmar contraseña
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** El campo se marca en rojo y GUARDAR se mantiene deshabilitado
+- **Prueba:** `CambioDeContrasenaPruebas#requisitosDeLaContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Requisitos de la contrasena en los campos Nueva contraseña y Confirmar contraseña
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#requisitosDeLaContrasena'`
+- **Renglon de la tabla para este caso:** `{"CAM_005", Selectores.CONTRASENA_CONFIRMAR, "Confirmar contraseña"}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeContrasenaNueva")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `abrir` -> `debenMostrarseLosRequisitos` -> `escribirEnElCampo` -> `elCampoSeMarcoEnRojo` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 3
+
+```java
+        pantalla.abrir()
+                .debenMostrarseLosRequisitos(
+                        Configuracion.listaSeparadaPorBarra("amex.contrasena.requisitos"));
+        pantalla.escribirEnElCampo(Selectores.CONTRASENA_ACTUAL, ACTUAL_DE_EJEMPLO);
+        for (String invalida : Configuracion.lista("amex.contrasena.invalidas")) {
+            pantalla.escribirEnElCampo(campo, invalida);
+            Assert.assertTrue(pantalla.elCampoSeMarcoEnRojo(campo),
+                    "El campo " + etiqueta + " no se marco en rojo con \"" + invalida
+                            + "\", que no cumple los requisitos.");
+            Assert.assertFalse(pantalla.elBotonGuardarEstaHabilitado(),
+                    "GUARDAR no debe habilitarse con \"" + invalida + "\" en " + etiqueta + ".");
+        }
+```
+
+## PF_CP_006 — Pantalla para Cambiar contraseña
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** Se muestra la pantalla Cambio de contraseña con los requisitos de seguridad, los campos Contraseña actual, Nueva contraseña y Confirmar contraseña, y los botones CANCELAR y GUARDAR (deshabilitado)
+- **Prueba:** `CambioDeContrasenaPruebas#pfCp006PantallaDeCambioDeContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** La pantalla de cambio de contraseña muestra titulo, requisitos, los tres campos y los botones
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#pfCp006PantallaDeCambioDeContrasena'`
+- **Pasos que ejecuta:** `abrir` -> `elTituloDebeSer` -> `debenMostrarseLosRequisitos` -> `losCamposDebenEstarVisibles` -> `elBotonCancelarEstaVisible` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 5
+
+```java
+        pantalla.abrir()
+                .elTituloDebeSer(PaginaCambioDeContrasena.TITULO)
+                .debenMostrarseLosRequisitos(
+                        Configuracion.listaSeparadaPorBarra("amex.contrasena.requisitos"))
+                .losCamposDebenEstarVisibles();
+        Assert.assertTrue(pantalla.elBotonCancelarEstaVisible(), "Falta el boton CANCELAR.");
+        Assert.assertFalse(pantalla.elBotonGuardarEstaHabilitado(),
+                "Con los campos vacios GUARDAR debe estar deshabilitado.");
+```
+
+## CAM_006 — Nueva contraseña distinta a Confirmar contraseña
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** El campo Confirmar contraseña se marca en rojo y GUARDAR se mantiene deshabilitado
+- **Prueba:** `CambioDeContrasenaPruebas#cam006ConfirmacionDistinta`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Confirmar contraseña distinta a Nueva contraseña: campo en rojo y GUARDAR deshabilitado
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#cam006ConfirmacionDistinta'`
+- **Pasos que ejecuta:** `abrir` -> `escribirEnElCampo` -> `elCampoSeMarcoEnRojo` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 2
+
+```java
+        String valida = Configuracion.obtener("amex.contrasena.valida");
+        pantalla.abrir()
+                .escribirEnElCampo(Selectores.CONTRASENA_ACTUAL, ACTUAL_DE_EJEMPLO)
+                .escribirEnElCampo(Selectores.CONTRASENA_NUEVA, valida)
+                .escribirEnElCampo(Selectores.CONTRASENA_CONFIRMAR, otraContrasenaValida(valida));
+        Assert.assertTrue(pantalla.elCampoSeMarcoEnRojo(Selectores.CONTRASENA_CONFIRMAR),
+                "Confirmar contraseña debe marcarse en rojo cuando no coincide.");
+        Assert.assertFalse(pantalla.elBotonGuardarEstaHabilitado(),
+                "GUARDAR no debe habilitarse si las contrasenas no coinciden.");
+```
 
 ## PF_CP_007 — Características contraseña
 
 - **Modulo:** Cambiar contraseña
 - **Lo que pide la matriz:** El sistema muestra las siguientes caracterísitcas para la nueva contraseña: Mínimo 13 caracteres. Al menos una letra (mayúscula o minúscula). Al menos un número. Al menos un carácter especial: #?!@%^&*- .()- No más de dos letras o números iguales consecutivos Solo se permiten letras, números y los caracteres especiales indicados
-- **Automatizado:** no. La matriz lo marca Cancelado.
+- **Prueba:** `CambioDeContrasenaPruebas#requisitosDeLaContrasena`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Requisitos de la contrasena en los campos Nueva contraseña y Confirmar contraseña
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#requisitosDeLaContrasena'`
+- **Renglon de la tabla para este caso:** `{"PF_CP_007", Selectores.CONTRASENA_NUEVA, "Nueva contraseña"}`
+- **Ojo:** este metodo cubre varios casos con la tabla `@DataProvider("camposDeContrasenaNueva")`; el comando los corre todos y la consola imprime el ID de cada uno.
+- **Pasos que ejecuta:** `abrir` -> `debenMostrarseLosRequisitos` -> `escribirEnElCampo` -> `elCampoSeMarcoEnRojo` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 3
+
+```java
+        pantalla.abrir()
+                .debenMostrarseLosRequisitos(
+                        Configuracion.listaSeparadaPorBarra("amex.contrasena.requisitos"));
+        pantalla.escribirEnElCampo(Selectores.CONTRASENA_ACTUAL, ACTUAL_DE_EJEMPLO);
+        for (String invalida : Configuracion.lista("amex.contrasena.invalidas")) {
+            pantalla.escribirEnElCampo(campo, invalida);
+            Assert.assertTrue(pantalla.elCampoSeMarcoEnRojo(campo),
+                    "El campo " + etiqueta + " no se marco en rojo con \"" + invalida
+                            + "\", que no cumple los requisitos.");
+            Assert.assertFalse(pantalla.elBotonGuardarEstaHabilitado(),
+                    "GUARDAR no debe habilitarse con \"" + invalida + "\" en " + etiqueta + ".");
+        }
+```
+
+## CAM_007 — Campos llenos y validos
+
+- **Modulo:** Cambiar contraseña
+- **Lo que pide la matriz:** No se muestra ningun error y el boton GUARDAR se habilita
+- **Prueba:** `CambioDeContrasenaPruebas#cam007CamposLlenosYValidos`  (etiquetas: cambio_contrasena, login)
+- **Lo que valida el codigo:** Campos llenos y validos: GUARDAR se habilita (no se presiona)
+- **Correr solo este caso:** `mvn test -Dtest='CambioDeContrasenaPruebas#cam007CamposLlenosYValidos'`
+- **Pasos que ejecuta:** `abrir` -> `escribirEnElCampo` -> `elCampoSeMarcoEnRojo` -> `elBotonGuardarEstaHabilitado`
+- **Verificaciones:** 2
+
+```java
+        String valida = Configuracion.obtener("amex.contrasena.valida");
+        pantalla.abrir()
+                .escribirEnElCampo(Selectores.CONTRASENA_ACTUAL, ACTUAL_DE_EJEMPLO)
+                .escribirEnElCampo(Selectores.CONTRASENA_NUEVA, valida)
+                .escribirEnElCampo(Selectores.CONTRASENA_CONFIRMAR, valida);
+        Assert.assertFalse(pantalla.elCampoSeMarcoEnRojo(Selectores.CONTRASENA_NUEVA),
+                "La contrasena de amex.contrasena.valida no cumple los requisitos de hoy.");
+        Assert.assertTrue(pantalla.elBotonGuardarEstaHabilitado(),
+                "Con los tres campos validos e iguales GUARDAR debe habilitarse.");
+```
 
 ## PF_CP_008 — Validacion de pantalla de inicio
 
@@ -467,7 +683,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 - **Prueba:** `UsuariosAltasPruebas#pfCp020GuardarRegistroDeUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
 - **Lo que valida el codigo:** Guardar registro da de alta al usuario y la tabla lo muestra activo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp020GuardarRegistroDeUsuario'`
-- **Pasos que ejecuta:** `abrirElAltaDeUsuario` -> `llenarElAltaDeUsuario` -> `elBotonGuardarEstaDeshabilitado` -> `guardarElRegistro` -> `abrir` -> `buscarPorNombre` -> `nombres` -> `laTablaDebeMostrarAlUsuario` -> `numeroDeEmpleado` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `abrirElAltaDeUsuario` -> `llenarElAltaDeUsuario` -> `elBotonGuardarEstaDeshabilitado` -> `guardarElRegistro` -> `abrir` -> `buscarPorCorreo` -> `correo` -> `laTablaDebeMostrarAlUsuario` -> `numeroDeEmpleado` -> `desactivarSiQuedoActivo`
 - **Verificaciones:** 2
 
 ```java
@@ -480,10 +696,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
             usuarios.guardarElRegistro();
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -908,10 +1124,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Muestra un popup indicando: Usuario actualizado Se han actualizado los datos del usuario seleccionado con el botón "X" Se valida la información de la tabla actualizada
-- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Detalle del usuario: editar datos, generar contraseña y cancelar
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp039DetalleDelUsuario'`
-- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorNombre` -> `nombres` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorCorreo` -> `correo` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
 - **Verificaciones:** 4
 
 ```java
@@ -924,7 +1140,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                     "Al guardar no se aviso que se actualizo el usuario. La aplicacion mostro: "
                             + usuarios.ultimoMensaje() + ".");
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado())
                     .elCargoDelDetalleDebeSer(usuario.cargoEditado());
 
@@ -936,14 +1152,14 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             // PF_CP_041: Cancelar cierra el detalle y regresa a la pantalla de Usuarios.
             if (!usuarios.elDetalleEstaAbierto()) {
                 usuarios.abrir()
-                        .buscarPorNombre(usuario.nombres())
+                        .buscarPorCorreo(usuario.correo())
                         .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado());
             }
             usuarios.cancelarElDetalle();
             inicio.laDireccionDebeContener("expedient/users");
             usuarios.abrir();
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -951,10 +1167,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Muestra sobre la misma pantalla de detalle lo siguiente: Tu nueva contraseña es: Copiar contraseña Recuerda guardar tu contraseña en un lugar seguro.
-- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Detalle del usuario: editar datos, generar contraseña y cancelar
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp039DetalleDelUsuario'`
-- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorNombre` -> `nombres` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorCorreo` -> `correo` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
 - **Verificaciones:** 4
 
 ```java
@@ -967,7 +1183,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                     "Al guardar no se aviso que se actualizo el usuario. La aplicacion mostro: "
                             + usuarios.ultimoMensaje() + ".");
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado())
                     .elCargoDelDetalleDebeSer(usuario.cargoEditado());
 
@@ -979,14 +1195,14 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             // PF_CP_041: Cancelar cierra el detalle y regresa a la pantalla de Usuarios.
             if (!usuarios.elDetalleEstaAbierto()) {
                 usuarios.abrir()
-                        .buscarPorNombre(usuario.nombres())
+                        .buscarPorCorreo(usuario.correo())
                         .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado());
             }
             usuarios.cancelarElDetalle();
             inicio.laDireccionDebeContener("expedient/users");
             usuarios.abrir();
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -994,10 +1210,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Muestra la pantalla de Usuario
-- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp039DetalleDelUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Detalle del usuario: editar datos, generar contraseña y cancelar
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp039DetalleDelUsuario'`
-- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorNombre` -> `nombres` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `abrirElDetalleDelUsuario` -> `numeroDeEmpleado` -> `editarElCargoDelDetalle` -> `cargoEditado` -> `ultimoMensaje` -> `toUpperCase` -> `abrir` -> `buscarPorCorreo` -> `correo` -> `elCargoDelDetalleDebeSer` -> `generarLaContrasena` -> `elDetalleEstaAbierto` -> `cancelarElDetalle` -> `laDireccionDebeContener` -> `desactivarSiQuedoActivo`
 - **Verificaciones:** 4
 
 ```java
@@ -1010,7 +1226,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                     "Al guardar no se aviso que se actualizo el usuario. La aplicacion mostro: "
                             + usuarios.ultimoMensaje() + ".");
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado())
                     .elCargoDelDetalleDebeSer(usuario.cargoEditado());
 
@@ -1022,14 +1238,14 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             // PF_CP_041: Cancelar cierra el detalle y regresa a la pantalla de Usuarios.
             if (!usuarios.elDetalleEstaAbierto()) {
                 usuarios.abrir()
-                        .buscarPorNombre(usuario.nombres())
+                        .buscarPorCorreo(usuario.correo())
                         .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado());
             }
             usuarios.cancelarElDetalle();
             inicio.laDireccionDebeContener("expedient/users");
             usuarios.abrir();
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -1037,10 +1253,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Se mustra modal con lo siguirente: Se va a desactivar el usuario: Nombre usuario ¿Seguro que desea continuar? Botón Aceptar Botón Cancelar
-- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Desactivar un usuario (aceptar y cancelar el modal) y volver a activarlo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario'`
-- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo` -> `correo`
 - **Verificaciones:** 4
 
 ```java
@@ -1065,7 +1281,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             usuarios.activarAlUsuario(usuario.numeroDeEmpleado())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -1073,10 +1289,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que el estatus cambie a inactivo
-- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Desactivar un usuario (aceptar y cancelar el modal) y volver a activarlo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario'`
-- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo` -> `correo`
 - **Verificaciones:** 4
 
 ```java
@@ -1101,7 +1317,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             usuarios.activarAlUsuario(usuario.numeroDeEmpleado())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -1109,10 +1325,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que cierre el Modal y te mantenga en la pantalla usuarios
-- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Desactivar un usuario (aceptar y cancelar el modal) y volver a activarlo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario'`
-- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo` -> `correo`
 - **Verificaciones:** 4
 
 ```java
@@ -1137,7 +1353,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             usuarios.activarAlUsuario(usuario.numeroDeEmpleado())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -1145,10 +1361,10 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla usuario
 - **Lo que pide la matriz:** Validar que el estatus cambie a activo
-- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios, escribe_datos)
+- **Prueba:** `UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario`  (etiquetas: ola5, usuarios)
 - **Lo que valida el codigo:** Desactivar un usuario (aceptar y cancelar el modal) y volver a activarlo
 - **Correr solo este caso:** `mvn test -Dtest='UsuariosAltasPruebas#pfCp042DesactivarYActivarUsuario'`
-- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo`
+- **Pasos que ejecuta:** `desactivarAlUsuario` -> `numeroDeEmpleado` -> `textoDelPopup` -> `toUpperCase` -> `nombres` -> `cancelarElPopup` -> `laTablaDebeMostrarAlUsuario` -> `aceptarElPopup` -> `activarAlUsuario` -> `desactivarSiQuedoActivo` -> `correo`
 - **Verificaciones:** 4
 
 ```java
@@ -1173,7 +1389,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
             usuarios.activarAlUsuario(usuario.numeroDeEmpleado())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
 ```
 
@@ -1241,7 +1457,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Nacionalidades
 - **Lo que pide la matriz:** Muestra la nacionalidad agregada en la tabla de nacionalidades
-- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Nacionalidades: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#nacionalidades'`
 - **Pasos que ejecuta:** 
@@ -1299,7 +1515,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Nacionalidades
 - **Lo que pide la matriz:** Muestra la tabla de nacionalidades con la información editada
-- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Nacionalidades: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#nacionalidades'`
 - **Pasos que ejecuta:** 
@@ -1313,7 +1529,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Nacionalidades
 - **Lo que pide la matriz:** Muestra la tabla de nacionalidades con la nacaionalidad inactiva
-- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Nacionalidades: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#nacionalidades'`
 - **Pasos que ejecuta:** 
@@ -1327,7 +1543,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Nacionalidades
 - **Lo que pide la matriz:** Muestra la tabla de nacionalidades con la nacaionalidad activa
-- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#nacionalidades`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Nacionalidades: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#nacionalidades'`
 - **Pasos que ejecuta:** 
@@ -1378,7 +1594,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Profesiones
 - **Lo que pide la matriz:** Muestra la Profesion agregada en la tabla de Profesiones
-- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Profesiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#profesiones'`
 - **Pasos que ejecuta:** 
@@ -1436,7 +1652,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Profesiones
 - **Lo que pide la matriz:** Muestra la tabla de Profesiones con la información editada
-- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Profesiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#profesiones'`
 - **Pasos que ejecuta:** 
@@ -1450,7 +1666,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Profesiones
 - **Lo que pide la matriz:** Muestra la tabla de Profesiones con la Profesion inactiva
-- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Profesiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#profesiones'`
 - **Pasos que ejecuta:** 
@@ -1464,7 +1680,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Profesiones
 - **Lo que pide la matriz:** Muestra la tabla de Profesiones con la Profesion activa
-- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#profesiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Profesiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#profesiones'`
 - **Pasos que ejecuta:** 
@@ -1515,7 +1731,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Campaña
 - **Lo que pide la matriz:** Muestra la Campaña agregada en la tabla de Campañas
-- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Campaña: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#campana'`
 - **Pasos que ejecuta:** 
@@ -1593,7 +1809,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Campaña
 - **Lo que pide la matriz:** Muestra la tabla de Campañas con la información editada
-- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Campaña: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#campana'`
 - **Pasos que ejecuta:** 
@@ -1607,7 +1823,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Campaña
 - **Lo que pide la matriz:** Muestra la tabla de Campañas con la Campaña inactiva
-- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Campaña: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#campana'`
 - **Pasos que ejecuta:** 
@@ -1621,7 +1837,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Campaña
 - **Lo que pide la matriz:** Muestra la tabla de Campañas con la Campaña activa
-- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#campana`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Campaña: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#campana'`
 - **Pasos que ejecuta:** 
@@ -1672,7 +1888,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Codigo de pais
 - **Lo que pide la matriz:** Muestra la nacionalidad agregada en la tabla de Codigo de pais
-- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Codigo de pais: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#codigoDePais'`
 - **Pasos que ejecuta:** 
@@ -1729,7 +1945,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Codigo de pais
 - **Lo que pide la matriz:** Muestra la tabla de Codigo de pais con la información editada
-- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Codigo de pais: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#codigoDePais'`
 - **Pasos que ejecuta:** 
@@ -1743,7 +1959,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Codigo de pais
 - **Lo que pide la matriz:** Muestra la tabla de Codigo de pais con el Codigo de pais inactiva
-- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Codigo de pais: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#codigoDePais'`
 - **Pasos que ejecuta:** 
@@ -1757,7 +1973,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Codigo de pais
 - **Lo que pide la matriz:** Muestra la tabla de Codigo de pais con el Codigo de pais activa
-- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#codigoDePais`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Codigo de pais: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#codigoDePais'`
 - **Pasos que ejecuta:** 
@@ -1808,7 +2024,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Productos
 - **Lo que pide la matriz:** Muestra el Producto agregada en la tabla de Productos
-- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Productos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#productos'`
 - **Pasos que ejecuta:** 
@@ -1907,7 +2123,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Productos
 - **Lo que pide la matriz:** Muestra la tabla de Productos con la información editada
-- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Productos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#productos'`
 - **Pasos que ejecuta:** 
@@ -1921,7 +2137,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Productos
 - **Lo que pide la matriz:** Muestra la tabla de Productos con el Producto inactiva
-- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Productos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#productos'`
 - **Pasos que ejecuta:** 
@@ -1935,7 +2151,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Productos
 - **Lo que pide la matriz:** Muestra la tabla de Productos con el Producto activa
-- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#productos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Productos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#productos'`
 - **Pasos que ejecuta:** 
@@ -1986,7 +2202,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Dias festivos
 - **Lo que pide la matriz:** Muestra la nacionalidad agregada en la tabla de Dias festivos
-- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Dias festivos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#diasFestivos'`
 - **Pasos que ejecuta:** 
@@ -2061,7 +2277,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Dias festivos
 - **Lo que pide la matriz:** Muestra la tabla de Dias festivos con la información editada
-- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Dias festivos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#diasFestivos'`
 - **Pasos que ejecuta:** 
@@ -2075,7 +2291,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Dias festivos
 - **Lo que pide la matriz:** Muestra la tabla de Dias festivos con el dia festivo inactiva
-- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Dias festivos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#diasFestivos'`
 - **Pasos que ejecuta:** 
@@ -2089,7 +2305,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Dias festivos
 - **Lo que pide la matriz:** Muestra la tabla de Dias festivos con el Dia festivo activa
-- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#diasFestivos`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Dias festivos: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#diasFestivos'`
 - **Pasos que ejecuta:** 
@@ -2140,7 +2356,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Versiones
 - **Lo que pide la matriz:** Muestra la Version agregada en la tabla de Versiones
-- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Versiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#versiones'`
 - **Pasos que ejecuta:** 
@@ -2218,7 +2434,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Versiones
 - **Lo que pide la matriz:** Muestra la tabla de Versiones con la información editada
-- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Versiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#versiones'`
 - **Pasos que ejecuta:** 
@@ -2232,7 +2448,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Versiones
 - **Lo que pide la matriz:** Muestra la tabla de Versiones con la Version inactiva
-- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Versiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#versiones'`
 - **Pasos que ejecuta:** 
@@ -2246,7 +2462,7 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
 
 - **Modulo:** Expediente pantalla Catálogos - Versiones
 - **Lo que pide la matriz:** Muestra la tabla de Versiones con la Version activa
-- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos, escribe_datos)
+- **Prueba:** `CatalogosAltasPruebas#versiones`  (etiquetas: ola5, catalogos)
 - **Lo que valida el codigo:** Versiones: agregar, editar, inactivar y activar un elemento
 - **Correr solo este caso:** `mvn test -Dtest='CatalogosAltasPruebas#versiones'`
 - **Pasos que ejecuta:** 
@@ -3481,6 +3697,78 @@ Assert.assertTrue(login.sigueEnLaPantallaDeLogin());                    // 5. no
                 "Falta el mensaje \"" + PaginaLogin.TEXTO_CORREO_INVALIDO + "\".");
         Assert.assertFalse(login.botonIniciarSesionHabilitado(),
                 "Con un correo invalido el boton debe estar deshabilitado.");
+```
+
+## VAL_005
+
+- **Prueba:** `LoginPruebas#val005LongitudMinimaDelCorreo`  (etiquetas: login)
+- **Lo que valida el codigo:** Correo de menos de 5 caracteres: mensaje de longitud minima
+- **Correr solo este caso:** `mvn test -Dtest='LoginPruebas#val005LongitudMinimaDelCorreo'`
+- **Pasos que ejecuta:** `escribirUsuario` -> `escribirContrasena` -> `seMuestraElMensaje` -> `botonIniciarSesionHabilitado`
+- **Verificaciones:** 2
+
+```java
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("a@b");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.mensajeDeLongitudMinima(5)),
+                "Falta el mensaje \"" + PaginaLogin.mensajeDeLongitudMinima(5) + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con un correo demasiado corto el boton debe estar deshabilitado.");
+```
+
+## VAL_006
+
+- **Prueba:** `LoginPruebas#val006LongitudMinimaDeLaContrasena`  (etiquetas: login)
+- **Lo que valida el codigo:** Contrasena de menos de 8 caracteres: mensaje de longitud minima
+- **Correr solo este caso:** `mvn test -Dtest='LoginPruebas#val006LongitudMinimaDeLaContrasena'`
+- **Pasos que ejecuta:** `escribirUsuario` -> `escribirContrasenaYSalir` -> `seMuestraElMensaje` -> `botonIniciarSesionHabilitado`
+- **Verificaciones:** 2
+
+```java
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario(Configuracion.usuario());
+        login.escribirContrasenaYSalir("abc");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.mensajeDeLongitudMinima(8)),
+                "Falta el mensaje \"" + PaginaLogin.mensajeDeLongitudMinima(8) + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con una contrasena demasiado corta el boton debe estar deshabilitado.");
+```
+
+## DEF_001
+
+- **Prueba:** `LoginPruebas#def001CorreoConCaracteresInvalidos`  (etiquetas: login)
+- **Lo que valida el codigo:** Correo con los caracteres # $ % & / ( ) [ ]: se rechaza
+- **Correr solo este caso:** `mvn test -Dtest='LoginPruebas#def001CorreoConCaracteresInvalidos'`
+- **Pasos que ejecuta:** `escribirUsuario` -> `escribirContrasena` -> `seMuestraElMensaje` -> `botonIniciarSesionHabilitado`
+- **Verificaciones:** 2
+
+```java
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("qa#$%&/()[]@qa.com");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.TEXTO_CORREO_INVALIDO),
+                "Falta el mensaje \"" + PaginaLogin.TEXTO_CORREO_INVALIDO + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con esos caracteres el boton debe estar deshabilitado.");
+```
+
+## DEF_002
+
+- **Prueba:** `LoginPruebas#def002CorreoConCaracteresValidos`  (etiquetas: login)
+- **Lo que valida el codigo:** Correo con los caracteres - _ . : se acepta sin mensaje
+- **Correr solo este caso:** `mvn test -Dtest='LoginPruebas#def002CorreoConCaracteresValidos'`
+- **Pasos que ejecuta:** `escribirUsuario` -> `escribirContrasena` -> `seMuestraElMensaje` -> `botonIniciarSesionHabilitado`
+- **Verificaciones:** 2
+
+```java
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("qa-_.prueba@qa.com");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertFalse(login.seMuestraElMensaje(PaginaLogin.TEXTO_CORREO_INVALIDO),
+                "Los caracteres - _ . son validos y no deben marcar error.");
+        Assert.assertTrue(login.botonIniciarSesionHabilitado(),
+                "Con un correo valido el boton debe habilitarse.");
 ```
 
 ## DEF_01
