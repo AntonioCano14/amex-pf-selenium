@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * ID del caso en la matriz funcional (PF_CP_046, VAL_001, DEF_01, SEG_001).
+ * ID del caso en la matriz funcional (PF_CP_046, CAM_001, VAL_001, DEF_01, SEG_001).
  *
  * El ID se toma de la primera palabra de la descripcion del @Test, o del primer
  * dato cuando el caso viene de un @DataProvider que cubre varios IDs. Al agregar
@@ -19,10 +19,10 @@ public final class IdDeLaMatriz {
 
     /** Los casos de la matriz van primero; los internos, despues. */
     private static final List<String> ORDEN_DE_LOS_PREFIJOS =
-            List.of("PF_CP", "VAL", "SEG", "DEF");
+            List.of("PF_CP", "CAM", "VAL", "SEG", "DEF");
     private static final Pattern PARTES_DEL_ID =
-            Pattern.compile("(PF_CP|VAL|DEF|SEG)_([0-9]+)");
-    private static final String ID = "(PF_CP|VAL|DEF|SEG)_[0-9]+([-_/][0-9]+)*";
+            Pattern.compile("(PF_CP|VAL|DEF|SEG|CAM)_([0-9]+)");
+    private static final String ID = "(PF_CP|VAL|DEF|SEG|CAM)_[0-9]+([-_/][0-9]+)*";
 
     private IdDeLaMatriz() {
     }

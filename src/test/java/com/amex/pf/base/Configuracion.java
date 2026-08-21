@@ -78,6 +78,14 @@ public final class Configuracion {
         return Integer.parseInt(obtener("amex.espera"));
     }
 
+    /**
+     * Lee una propiedad con varios valores separados por "|". Se usa cuando los
+     * valores llevan comas (por ejemplo los requisitos de la contrasena).
+     */
+    public static String[] listaSeparadaPorBarra(String clave) {
+        return obtener(clave).split("\\s*\\|\\s*");
+    }
+
     /** Lee una propiedad con varios valores separados por coma. */
     public static String[] lista(String clave) {
         return obtener(clave).split("\\s*,\\s*");

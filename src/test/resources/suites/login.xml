@@ -17,6 +17,7 @@
     </groups>
     <classes>
       <class name="com.amex.pf.pruebas.LoginPruebas"/>
+      <class name="com.amex.pf.pruebas.CambioDeContrasenaPruebas"/>
     </classes>
   </test>
 </suite>

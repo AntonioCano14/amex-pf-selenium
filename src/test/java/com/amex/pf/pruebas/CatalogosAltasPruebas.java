@@ -13,8 +13,11 @@ import com.amex.pf.paginas.PaginaLogin;
 /**
  * OLA 5 - Altas, ediciones, bajas y activaciones de los siete catalogos.
  *
- * OJO: estas pruebas SI ESCRIBEN en el ambiente (grupo escribe_datos, excluido de
- * la suite de regresion). Para no ensuciar los datos reales:
+ * OJO: estas pruebas SI ESCRIBEN en el ambiente y aun asi ENTRAN A LA REGRESION
+ * (no llevan el grupo escribe_datos), porque son los casos que la matriz pide
+ * validar en cada no afectacion. Consecuencia: cada regresion deja un elemento
+ * ZZAUTOQA inactivo en cada uno de los siete catalogos y no debe correrse en
+ * paralelo con la misma cuenta. Para no ensuciar los datos reales:
  * - todo lo que se crea lleva el prefijo de amex.datos.prefijo (ZZAUTOQA) y un
  *   numero distinto en cada ejecucion;
  * - nunca se toca un registro que no haya creado la propia prueba;
@@ -40,49 +43,49 @@ public class CatalogosAltasPruebas extends PruebaBase {
         catalogos = new PaginaCatalogos().abrir();
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_048/051/052/053 Nacionalidades: agregar, editar, inactivar y "
                     + "activar un elemento")
     public void nacionalidades() {
         cicloDelCatalogo("Nacionalidades");
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_055/058/059/060 Profesiones: agregar, editar, inactivar y "
                     + "activar un elemento")
     public void profesiones() {
         cicloDelCatalogo("Profesiones");
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_062/066/067/068 Campaña: agregar, editar, inactivar y activar "
                     + "un elemento")
     public void campana() {
         cicloDelCatalogo("Campaña");
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_070/073/074/075 Codigo de pais: agregar, editar, inactivar y "
                     + "activar un elemento")
     public void codigoDePais() {
         cicloDelCatalogo("Codigo de pais");
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_077/082/083/084 Productos: agregar, editar, inactivar y activar "
                     + "un elemento")
     public void productos() {
         cicloDelCatalogo("Productos");
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_086/090/091/092 Dias festivos: agregar, editar, inactivar y "
                     + "activar un elemento")
     public void diasFestivos() {
         cicloDelCatalogo(ElementoDeCatalogo.DIAS_FESTIVOS);
     }
 
-    @Test(groups = {"ola5", "catalogos", "escribe_datos"},
+    @Test(groups = {"ola5", "catalogos"},
             description = "PF_CP_094/098/099/100 Versiones: agregar, editar, inactivar y activar "
                     + "un elemento")
     public void versiones() {

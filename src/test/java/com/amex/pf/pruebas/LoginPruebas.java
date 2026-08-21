@@ -93,6 +93,54 @@ public class LoginPruebas extends PruebaBase {
                 "Con un correo invalido el boton debe estar deshabilitado.");
     }
 
+    @Test(groups = "login",
+            description = "VAL_005 Correo de menos de 5 caracteres: mensaje de longitud minima")
+    public void val005LongitudMinimaDelCorreo() {
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("a@b");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.mensajeDeLongitudMinima(5)),
+                "Falta el mensaje \"" + PaginaLogin.mensajeDeLongitudMinima(5) + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con un correo demasiado corto el boton debe estar deshabilitado.");
+    }
+
+    @Test(groups = "login",
+            description = "VAL_006 Contrasena de menos de 8 caracteres: mensaje de longitud minima")
+    public void val006LongitudMinimaDeLaContrasena() {
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario(Configuracion.usuario());
+        login.escribirContrasenaYSalir("abc");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.mensajeDeLongitudMinima(8)),
+                "Falta el mensaje \"" + PaginaLogin.mensajeDeLongitudMinima(8) + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con una contrasena demasiado corta el boton debe estar deshabilitado.");
+    }
+
+    @Test(groups = "login",
+            description = "DEF_001 Correo con los caracteres # $ % & / ( ) [ ]: se rechaza")
+    public void def001CorreoConCaracteresInvalidos() {
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("qa#$%&/()[]@qa.com");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertTrue(login.seMuestraElMensaje(PaginaLogin.TEXTO_CORREO_INVALIDO),
+                "Falta el mensaje \"" + PaginaLogin.TEXTO_CORREO_INVALIDO + "\".");
+        Assert.assertFalse(login.botonIniciarSesionHabilitado(),
+                "Con esos caracteres el boton debe estar deshabilitado.");
+    }
+
+    @Test(groups = "login",
+            description = "DEF_002 Correo con los caracteres - _ . : se acepta sin mensaje")
+    public void def002CorreoConCaracteresValidos() {
+        PaginaLogin login = new PaginaLogin();
+        login.escribirUsuario("qa-_.prueba@qa.com");
+        login.escribirContrasena("Cualquiera123");
+        Assert.assertFalse(login.seMuestraElMensaje(PaginaLogin.TEXTO_CORREO_INVALIDO),
+                "Los caracteres - _ . son validos y no deben marcar error.");
+        Assert.assertTrue(login.botonIniciarSesionHabilitado(),
+                "Con un correo valido el boton debe habilitarse.");
+    }
+
     /**
      * DEFECTO ABIERTO (DEF-01): el validador rechaza correos validos con "+".
      * Se deja en el grupo "defecto_conocido" para poder excluirlo de la regresion

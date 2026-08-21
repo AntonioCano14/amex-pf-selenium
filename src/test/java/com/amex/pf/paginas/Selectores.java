@@ -59,6 +59,20 @@ public final class Selectores {
     public static final By SALUDO_USUARIO = By.xpath("//*[contains(text(), 'Hola,')]");
     public static final By MENU_USUARIO = By.cssSelector("button.mat-menu-trigger");
     public static final By OPCION_SALIR = By.xpath("//button[contains(., 'Salir')]");
+    public static final By OPCION_CAMBIAR_CONTRASENA =
+            By.xpath("//button[contains(@class, 'mat-menu-item')][contains(., 'Cambiar contraseña')]");
+
+    // ------------------------------------------------- Pantalla de cambio de contrasena
+    public static final By CONTRASENA_ACTUAL =
+            By.cssSelector("input[formcontrolname='currentPassword']");
+    public static final By CONTRASENA_NUEVA =
+            By.cssSelector("input[formcontrolname='newPassword']");
+    public static final By CONTRASENA_CONFIRMAR =
+            By.cssSelector("input[formcontrolname='passwordConfirmation']");
+    public static final By BOTON_GUARDAR_CONTRASENA =
+            By.xpath("//button[contains(translate(., 'guardr', 'GUARDR'), 'GUARDAR')]");
+    public static final By BOTON_CANCELAR_CONTRASENA =
+            By.xpath("//button[contains(translate(., 'cancelr', 'CANCELR'), 'CANCELAR')]");
 
     public static By menuPrincipal(String nombre) {
         return By.xpath("//button[contains(@class, 'flat-button')][contains(., '" + nombre + "')]");

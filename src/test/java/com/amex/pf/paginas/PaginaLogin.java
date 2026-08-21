@@ -2,6 +2,7 @@ package com.amex.pf.paginas;
 
 import java.util.List;
 
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
@@ -15,6 +16,11 @@ public class PaginaLogin extends PaginaBase {
     public static final String TEXTO_CAMPO_OBLIGATORIO = "El campo es requerido";
     public static final String TEXTO_SESION_ACTIVA = "sesión activa";
 
+    /** Mensaje de longitud minima: 5 caracteres en el correo y 8 en la contrasena. */
+    public static String mensajeDeLongitudMinima(int minimo) {
+        return "El número mínimo de caracteres son: " + minimo;
+    }
+
     public PaginaLogin escribirUsuario(String usuario) {
         escribir(Selectores.CAMPO_USUARIO, usuario);
         return this;
@@ -22,6 +28,16 @@ public class PaginaLogin extends PaginaBase {
 
     public PaginaLogin escribirContrasena(String contrasena) {
         escribir(Selectores.CAMPO_CONTRASENA, contrasena);
+        return this;
+    }
+
+    /**
+     * Escribe la contrasena y saca el foco del campo: Angular solo muestra el
+     * mensaje cuando el campo queda "tocado", y este es el ultimo del formulario.
+     */
+    public PaginaLogin escribirContrasenaYSalir(String contrasena) {
+        escribir(Selectores.CAMPO_CONTRASENA, contrasena);
+        verVisible(Selectores.CAMPO_CONTRASENA).sendKeys(Keys.TAB);
         return this;
     }
 
