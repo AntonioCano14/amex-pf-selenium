@@ -357,6 +357,15 @@ solo debe empezar su descripción con el ID de la matriz para aparecer identific
 @Test(groups = "navegacion", description = "PF_CP_120 Descripción del caso")
 ```
 
+Cuando una prueba cubre **varios casos del mismo flujo**, los IDs se declaran
+separados por `/` (o como rango con `-`) y el reporte los imprime completos y los
+ordena por el primero, igual que la trazabilidad:
+
+```java
+@Test(description = "PF_CP_042/043/044/045 Desactivar un usuario y volver a activarlo")
+// → [PF_CP_042/043/044/045] APROBADO Desactivar un usuario y volver a activarlo (16.3 s)
+```
+
 Esto lo hacen `ReporteEnConsolaListener` y `OrdenDeLaMatriz`, registrados en las
 suites XML junto con `EvidenciaListener`; no hay que tocarlos al agregar casos.
 
