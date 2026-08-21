@@ -178,8 +178,21 @@ public final class ElementoDeCatalogo {
             return fecha(diaDeLaEdicion());
         }
         String valor = campos.get(campoQueSeEdita);
-        // El campo Codigo de "Codigo de pais" solo acepta 10 caracteres.
+        // Los campos de codigo solo aceptan digitos (el "+" del codigo de pais incluido):
+        // si se les agregara texto la pantalla lo filtraria y la tabla seguiria mostrando
+        // el valor original. Se agrega o se cambia un digito, respetando los 10 caracteres.
+        if (valor.matches("\\+?\\d+")) {
+            return valor.length() < 10
+                    ? valor + "0"
+                    : valor.substring(0, valor.length() - 1) + digitoDistinto(valor);
+        }
         return valor.length() >= 10 ? valor.substring(0, valor.length() - 1) + "9" : valor + " E";
+    }
+
+    /** Digito con el que se reemplaza el ultimo de un codigo que ya llego al limite. */
+    private static char digitoDistinto(String valor) {
+        char ultimo = valor.charAt(valor.length() - 1);
+        return ultimo == '9' ? '0' : (char) (ultimo + 1);
     }
 
     /**
