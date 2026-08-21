@@ -10,6 +10,10 @@ import java.util.regex.Pattern;
  * El ID se toma de la primera palabra de la descripcion del @Test, o del primer
  * dato cuando el caso viene de un @DataProvider que cubre varios IDs. Al agregar
  * un caso nuevo solo hay que empezar su descripcion con el ID de la matriz.
+ *
+ * Una prueba que cubre varios casos del mismo flujo los declara separados por
+ * "/" o como rango (PF_CP_042/043/044/045, PF_CP_115-116): el reporte los imprime
+ * completos y los ordena por el primer numero, igual que la trazabilidad.
  */
 public final class IdDeLaMatriz {
 
@@ -18,13 +22,13 @@ public final class IdDeLaMatriz {
             List.of("PF_CP", "VAL", "SEG", "DEF");
     private static final Pattern PARTES_DEL_ID =
             Pattern.compile("(PF_CP|VAL|DEF|SEG)_([0-9]+)");
+    private static final String ID = "(PF_CP|VAL|DEF|SEG)_[0-9]+([-_/][0-9]+)*";
 
     private IdDeLaMatriz() {
     }
 
     public static boolean es(String texto) {
-        return texto != null && primeraPalabra(texto)
-                .matches("(PF_CP|VAL|DEF|SEG)_[0-9]+([-_][0-9]+)?");
+        return texto != null && primeraPalabra(texto).matches(ID);
     }
 
     /** ID que trae un @DataProvider, o null si sus datos no traen ninguno. */

@@ -26,9 +26,9 @@ import com.amex.pf.paginas.PaginaUsuarios;
  * Las dos pruebas cubren los pasos del mismo flujo: el usuario que crea la primera
  * es el que usan los casos del detalle y de la desactivacion.
  *
- * NOTA sobre PF_CP_031 a PF_CP_038: la matriz repite en esos casos las mismas
- * validaciones de PF_CP_012 a PF_CP_019, ya automatizadas en la ola 2
- * (UsuariosValidacionesPruebas); no se duplican aqui.
+ * NOTA sobre PF_CP_031 a PF_CP_038: son las mismas validaciones de campos pero en
+ * el detalle del usuario y viven en UsuariosDetalleValidacionesPruebas (solo
+ * lectura); no se duplican aqui.
  */
 public class UsuariosAltasPruebas extends PruebaBase {
 
