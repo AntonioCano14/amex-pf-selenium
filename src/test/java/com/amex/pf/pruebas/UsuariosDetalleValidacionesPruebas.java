@@ -27,23 +27,46 @@ import com.amex.pf.paginas.Selectores;
  * Solo lectura: se escribe en los campos y se abren las listas, pero NUNCA se
  * presiona GUARDAR; cada prueba sale del detalle con CANCELAR, asi que el usuario
  * de QA queda con sus datos originales.
+ *
+ * El usuario que se abre debe estar ACTIVO: la aplicacion no muestra EDITAR DATOS
+ * en un usuario inactivo. Se toma el primer usuario de la tabla con numero de
+ * empleado y, si esta Inactivo, la prueba lo activa para poder validar el detalle y
+ * lo vuelve a dejar Inactivo al terminar (es el unico cambio que hace en el
+ * ambiente; el detalle en si nunca se guarda).
  */
 public class UsuariosDetalleValidacionesPruebas extends PruebaBase {
 
     private PaginaUsuarios usuarios;
 
+    /** Numero de empleado del usuario sobre el que se valida el detalle. */
+    private String numeroDeEmpleado = "";
+
+    /** true cuando la prueba activo al usuario y debe dejarlo inactivo al terminar. */
+    private boolean seActivoParaLaPrueba;
+
     @BeforeMethod(alwaysRun = true)
     public void abrirLaEdicionDelDetalle() {
         PaginaPrincipal inicio = new PaginaLogin().iniciarSesionConCredencialesValidas();
         inicio.irAlMenu("Usuarios");
-        usuarios = new PaginaUsuarios().abrir()
-                .abrirElDetalleDeUnUsuarioConNumeroDeEmpleado()
-                .editarLosDatosDelDetalle();
+        usuarios = new PaginaUsuarios().abrir();
+
+        PaginaUsuarios.UsuarioDeLaTabla usuario = usuarios.primerUsuarioConNumeroDeEmpleado();
+        numeroDeEmpleado = usuario.numeroDeEmpleado();
+        // Se marca antes de activar: si la activacion falla a medias, el @AfterMethod
+        // igual intenta devolverle su estatus original.
+        seActivoParaLaPrueba = !usuario.estaActivo();
+        if (seActivoParaLaPrueba) {
+            // Sin esto el detalle no muestra EDITAR DATOS y no hay nada que validar.
+            usuarios.activarAlUsuario(numeroDeEmpleado);
+        }
+
+        usuarios.abrirElDetalleDelUsuario(numeroDeEmpleado).editarLosDatosDelDetalle();
     }
 
     /**
-     * Sale del detalle con CANCELAR aunque la prueba haya fallado: asi los datos
-     * que se escribieron para validar nunca se guardan.
+     * Sale del detalle con CANCELAR aunque la prueba haya fallado (asi los datos que
+     * se escribieron para validar nunca se guardan) y devuelve al usuario su estatus
+     * original si la prueba lo tuvo que activar.
      */
     @AfterMethod(alwaysRun = true)
     public void cancelarLaEdicion() {
@@ -54,6 +77,9 @@ public class UsuariosDetalleValidacionesPruebas extends PruebaBase {
             usuarios.cerrarElDetalle();
         } catch (RuntimeException yaEstabaCerrado) {
             // La prueba pudo fallar antes de abrir el detalle: no hay nada que cancelar.
+        }
+        if (seActivoParaLaPrueba) {
+            usuarios.desactivarSiQuedoActivo(numeroDeEmpleado);
         }
     }
 

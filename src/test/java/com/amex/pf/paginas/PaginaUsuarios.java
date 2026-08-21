@@ -60,6 +60,9 @@ public class PaginaUsuarios extends PaginaFormulario {
     /** Numero de empleado de la fila cuyo detalle se abrio (PF_CP_031 a 038). */
     private String numeroDeEmpleadoDeLaTabla = "";
 
+    /** Estatus (Activo/Inactivo) de la fila cuyo detalle se abrio. */
+    private String estatusDelUsuarioDeLaTabla = "";
+
     /** Abre la pantalla y espera a que la aplicacion termine de navegar. */
     public PaginaUsuarios abrir() {
         esperarQueLaUrlContenga("expedient/users");
@@ -204,23 +207,42 @@ public class PaginaUsuarios extends PaginaFormulario {
      */
     public PaginaUsuarios abrirElDetalleDeUnUsuarioConNumeroDeEmpleado() {
         WebElement ojo = leerAunqueLaTablaSeRefresque(() -> {
-            List<WebElement> filas = filasConDatos().stream()
-                    .filter(fila -> !textoDe(fila.findElements(By.tagName("td")).get(0)).isBlank())
-                    .toList();
-            Assert.assertFalse(filas.isEmpty(),
-                    "Ningun usuario de la tabla tiene numero de empleado: no se puede validar el "
-                            + "detalle completo que pide PF_CP_030.");
-
-            List<WebElement> celdas = filas.get(0).findElements(By.tagName("td"));
-            numeroDeEmpleadoDeLaTabla = textoDe(celdas.get(0));
-            List<WebElement> ojos = filas.get(0).findElements(Selectores.VER_DETALLE_DE_LA_FILA);
+            WebElement fila = primeraFilaConNumeroDeEmpleado();
+            List<WebElement> ojos = fila.findElements(Selectores.VER_DETALLE_DE_LA_FILA);
             Assert.assertFalse(ojos.isEmpty(),
                     "La fila del usuario no muestra el boton Ver detalle.");
             return ojos.get(0).isDisplayed() ? ojos.get(0) : null;
         });
-        ojo.click();
+        hacerClic(ojo);
         verVisible(Selectores.MODAL);
         return this;
+    }
+
+    /**
+     * Numero de empleado y estatus del primer usuario de la tabla que tenga numero de
+     * empleado, sin abrir su detalle: PF_CP_031 a 038 necesitan saber el estatus antes,
+     * porque la aplicacion solo ofrece EDITAR DATOS en los usuarios activos.
+     */
+    public UsuarioDeLaTabla primerUsuarioConNumeroDeEmpleado() {
+        return leerAunqueLaTablaSeRefresque(() -> {
+            primeraFilaConNumeroDeEmpleado();
+            return new UsuarioDeLaTabla(numeroDeEmpleadoDeLaTabla, estatusDelUsuarioDeLaTabla);
+        });
+    }
+
+    /** Primera fila con numero de empleado; guarda su numero y su estatus. */
+    private WebElement primeraFilaConNumeroDeEmpleado() {
+        List<WebElement> filas = filasConDatos().stream()
+                .filter(fila -> !textoDe(fila.findElements(By.tagName("td")).get(0)).isBlank())
+                .toList();
+        Assert.assertFalse(filas.isEmpty(),
+                "Ningun usuario de la tabla tiene numero de empleado: no se puede validar el "
+                        + "detalle completo que piden PF_CP_030 y PF_CP_031 a 038.");
+
+        List<WebElement> celdas = filas.get(0).findElements(By.tagName("td"));
+        numeroDeEmpleadoDeLaTabla = textoDe(celdas.get(0));
+        estatusDelUsuarioDeLaTabla = textoDe(celdas.get(COLUMNA_ESTATUS));
+        return filas.get(0);
     }
 
     /** Numero de empleado que mostraba la tabla del usuario cuyo detalle se abrio. */
@@ -228,10 +250,31 @@ public class PaginaUsuarios extends PaginaFormulario {
         return numeroDeEmpleadoDeLaTabla;
     }
 
+    /** Estatus que mostraba la tabla del usuario cuyo detalle se abrio. */
+    public String estatusDelUsuarioDeLaTabla() {
+        return estatusDelUsuarioDeLaTabla;
+    }
+
+    /** Los datos que la prueba necesita de una fila de la tabla de usuarios. */
+    public record UsuarioDeLaTabla(String numeroDeEmpleado, String estatus) {
+        public boolean estaActivo() {
+            return estatus.equalsIgnoreCase("Activo");
+        }
+    }
+
     // ------------------------------- Detalle en modo edicion (PF_CP_031 a 038)
 
-    /** Presiona EDITAR DATOS y espera a que el detalle quede editable. */
+    /**
+     * Presiona EDITAR DATOS y espera a que el detalle quede editable. El boton solo
+     * existe si el usuario esta Activo: si falta, el mensaje lo dice en vez de esperar
+     * 20 segundos por un boton que la pantalla nunca va a mostrar.
+     */
     public PaginaUsuarios editarLosDatosDelDetalle() {
+        Assert.assertTrue(estaVisible(Selectores.USUARIO_DETALLE_BOTON_EDITAR, 10),
+                "El detalle del usuario no muestra EDITAR DATOS: la aplicacion solo permite "
+                        + "editar usuarios activos y este esta \"" + estatusDelUsuarioDeLaTabla
+                        + "\". Active al usuario antes de editar su detalle "
+                        + "(activarAlUsuario).");
         hacerClic(Selectores.USUARIO_DETALLE_BOTON_EDITAR);
         verVisible(Selectores.USUARIO_DETALLE_BOTON_GUARDAR);
         return this;
@@ -521,21 +564,38 @@ public class PaginaUsuarios extends PaginaFormulario {
      * numero de empleado.
      */
     public PaginaUsuarios desactivarSiQuedoActivo(String nombre, String numeroDeEmpleado) {
-        String texto = numeroDeEmpleado;
         try {
             abrir();
             buscarPorNombre(nombre);
-            WebElement fila = filaDelUsuarioSiExiste(texto);
+        } catch (RuntimeException noSePudo) {
+            avisarQueNoSePudoDesactivar(numeroDeEmpleado, noSePudo);
+            return this;
+        }
+        return desactivarSiQuedoActivo(numeroDeEmpleado);
+    }
+
+    /**
+     * Deja al usuario Inactivo cuando la prueba lo activo solo para poder validar su
+     * detalle (PF_CP_031 a 038): la fila se ubica por su numero de empleado en la
+     * tabla que ya esta en pantalla.
+     */
+    public PaginaUsuarios desactivarSiQuedoActivo(String numeroDeEmpleado) {
+        try {
+            WebElement fila = filaDelUsuarioSiExiste(numeroDeEmpleado);
             if (fila == null || !estatusDeLaFila(textoDe(fila)).equals("ACTIVO")) {
                 return this;
             }
-            desactivarAlUsuario(texto);
+            desactivarAlUsuario(numeroDeEmpleado);
             aceptarElPopup();
         } catch (RuntimeException noSePudo) {
-            System.out.println("            Aviso: no se pudo desactivar a \"" + texto
-                    + "\" al terminar (" + noSePudo.getClass().getSimpleName() + ").");
+            avisarQueNoSePudoDesactivar(numeroDeEmpleado, noSePudo);
         }
         return this;
+    }
+
+    private void avisarQueNoSePudoDesactivar(String texto, RuntimeException causa) {
+        System.out.println("            Aviso: no se pudo desactivar a \"" + texto
+                + "\" al terminar (" + causa.getClass().getSimpleName() + ").");
     }
 
     private WebElement filaDelUsuario(String texto) {

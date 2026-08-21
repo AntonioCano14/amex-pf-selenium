@@ -718,6 +718,14 @@ Es solo lectura: se escribe en los campos y se abren las listas, pero **nunca** 
 presiona GUARDAR; cada prueba sale con CANCELAR (incluso si el caso falló, con un
 `@AfterMethod`), así el usuario de QA queda con sus datos originales.
 
+**El usuario que se valida debe estar Activo**: en un usuario inactivo la
+aplicación no muestra el botón EDITAR DATOS, así que no hay detalle editable que
+validar. La prueba toma el primer usuario de la tabla con número de empleado, lee
+su estatus y, si está *Inactivo*, lo **activa** para poder validar y lo deja
+*Inactivo* otra vez al terminar (`desactivarSiQuedoActivo`). Es el único cambio que
+estos casos hacen en el ambiente; si el primer usuario ya está activo, no se toca
+nada.
+
 ```
 mvn test -Dtest='UsuariosDetalleValidacionesPruebas'                                  # los 8 casos
 mvn test -Dtest='UsuariosDetalleValidacionesPruebas#pfCp031ListaAreaDelDetalle'
