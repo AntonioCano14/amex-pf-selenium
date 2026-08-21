@@ -318,7 +318,7 @@ public static final By BOTON_INICIAR_SESION = By.xpath("//button[contains(., 'IN
 | `humo` | mínimo indispensable, corre en cada despliegue |
 | `login`, `navegacion`, `validaciones`, `catalogos`, `usuarios`, `consultas` | por módulo de la matriz |
 | `descargas` | archivos que entrega la aplicación (Excel, layout y ZIP) |
-| `escribe_datos` | crea o modifica información (excluido de la regresión) |
+| `escribe_datos` | crea o modifica información (excluido de la regresión, salvo `PF_CP_039`–`045`) |
 | `defecto_conocido` | falla por un defecto abierto de la aplicación |
 | `regla_por_confirmar` | la matriz y la aplicación no coinciden y falta definición |
 
@@ -613,8 +613,11 @@ Reglas de uso, importantes:
 - La aplicación **no permite borrar** usuarios ni elementos de catálogo: cada caso
   termina dejando **inactivo** lo que creó (bloque `finally`), incluso si falla a la
   mitad. Por eso el ambiente acumula registros `ZZAUTOQA …` inactivos.
-- Está **fuera de la regresión** (grupo `escribe_datos`): la regresión sigue siendo
-  de solo lectura.
+- Está **fuera de la regresión** (grupo `escribe_datos`), **excepto**
+  `PF_CP_039`–`045` (detalle del usuario, GENERAR CONTRASEÑA, desactivar y
+  activar): esos dos casos sí corren en la regresión, así que cada corrida deja
+  dos usuarios `ZZAUTOQA` inactivos más. `PF_CP_020` (el alta) sigue fuera porque
+  el alta ya se ejecuta dentro de esos dos casos.
 
 Qué datos usa cada catálogo está en una sola clase, `datos/ElementoDeCatalogo`
 (placeholder del campo → valor); los del usuario, en `datos/UsuarioDePrueba`. Para
@@ -797,8 +800,9 @@ reportan **OMITIDOS con el motivo**, no como falla.
 
 Excluidos de la regresión: `DEF_01` (el login rechaza correos válidos con `+`),
 `DEF_02` (PF_CP_018: el teléfono móvil acepta letras), `DEF_03` (PF_CP_022: el
-layout de usuarios no trae *Teléfono Fijo*), la ola 5 completa (grupo
-`escribe_datos`) y los pendientes de las secciones 7.1, 7.2 y 7.3.
+layout de usuarios no trae *Teléfono Fijo*), la ola 5 (grupo `escribe_datos`,
+menos `PF_CP_039`–`045`, que sí entran) y los pendientes de las secciones 7.1,
+7.2 y 7.3.
 
 ## 9. Integración continua
 

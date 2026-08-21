@@ -10,6 +10,12 @@
   - regla_por_confirmar : la matriz y la aplicacion no coinciden
   - escribe_datos       : casos que crean o modifican informacion
 
+  Excepcion: PF_CP_039 a PF_CP_045 (detalle del usuario, GENERAR CONTRASENA,
+  desactivar y activar) SI se ejecutan aqui. Crean su propio usuario ZZAUTOQA y lo
+  dejan inactivo, asi que cada regresion agrega dos usuarios de automatizacion
+  (la aplicacion no permite borrarlos) y no debe correrse en paralelo con la misma
+  cuenta.
+
   Ejecutar:  mvn test -Dsuite=regresion
 -->
 <suite name="Regresion AMEX PF - solo lectura" verbose="1" parallel="methods" thread-count="1">

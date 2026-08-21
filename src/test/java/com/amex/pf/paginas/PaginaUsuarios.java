@@ -411,11 +411,26 @@ public class PaginaUsuarios extends PaginaFormulario {
 
     /** Filtra la tabla por nombre y espera a que responda. */
     public PaginaUsuarios buscarPorNombre(String nombre) {
+        return buscarPor(Selectores.USUARIOS_FILTRO_NOMBRE, nombre);
+    }
+
+    /**
+     * Filtra la tabla por correo electronico y espera a que responda.
+     *
+     * Es el filtro que usan las pruebas que crean su propio usuario: el correo es
+     * unico, mientras que el nombre (ZZAUTOQA) lo comparten todos los usuarios de
+     * automatizacion y el recien creado puede quedar en otra pagina de la tabla.
+     */
+    public PaginaUsuarios buscarPorCorreo(String correo) {
+        return buscarPor(Selectores.USUARIOS_FILTRO_CORREO, correo);
+    }
+
+    private PaginaUsuarios buscarPor(By campo, String valor) {
         esperarQueTermineDeCargar();
-        if (!estaVisible(Selectores.USUARIOS_FILTRO_NOMBRE, 3)) {
+        if (!estaVisible(campo, 3)) {
             abrirElFiltro();
         }
-        escribir(Selectores.USUARIOS_FILTRO_NOMBRE, nombre);
+        escribir(campo, valor);
         hacerClic(Selectores.BOTON_BUSCAR);
         esperarQueTermineDeCargar();
         return this;
@@ -563,10 +578,10 @@ public class PaginaUsuarios extends PaginaFormulario {
      * filtra por su nombre (lo unico que acepta el filtro) y se ubica su fila por el
      * numero de empleado.
      */
-    public PaginaUsuarios desactivarSiQuedoActivo(String nombre, String numeroDeEmpleado) {
+    public PaginaUsuarios desactivarSiQuedoActivo(String correo, String numeroDeEmpleado) {
         try {
             abrir();
-            buscarPorNombre(nombre);
+            buscarPorCorreo(correo);
         } catch (RuntimeException noSePudo) {
             avisarQueNoSePudoDesactivar(numeroDeEmpleado, noSePudo);
             return this;

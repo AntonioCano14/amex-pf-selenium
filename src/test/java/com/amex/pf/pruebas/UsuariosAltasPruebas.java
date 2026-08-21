@@ -14,8 +14,7 @@ import com.amex.pf.paginas.PaginaUsuarios;
  * OLA 5 - Alta, edicion, desactivacion y activacion de usuarios
  * (PF_CP_020 y PF_CP_039 a PF_CP_045).
  *
- * OJO: estas pruebas SI ESCRIBEN en el ambiente (grupo escribe_datos, excluido de
- * la suite de regresion). Reglas de datos:
+ * OJO: estas pruebas SI ESCRIBEN en el ambiente. Reglas de datos:
  * - el usuario que se crea lleva el prefijo de amex.datos.prefijo (ZZAUTOQA), un
  *   correo distinto en cada ejecucion y nunca es un usuario real;
  * - la aplicacion no permite borrar usuarios, por eso la prueba lo deja INACTIVO;
@@ -23,8 +22,12 @@ import com.amex.pf.paginas.PaginaUsuarios;
  *   GENERAR CONTRASEÑA se presiona solo sobre el usuario de automatizacion, porque
  *   cambia la contrasena de quien lo reciba).
  *
- * Las dos pruebas cubren los pasos del mismo flujo: el usuario que crea la primera
- * es el que usan los casos del detalle y de la desactivacion.
+ * Cada prueba crea su propio usuario y trabaja solo sobre el.
+ *
+ * PF_CP_039 a PF_CP_045 SI entran a la suite de regresion (no llevan el grupo
+ * escribe_datos): cada regresion deja dos usuarios ZZAUTOQA inactivos, que es el
+ * precio de validar el detalle, la contrasena y la baja sin tocar usuarios reales.
+ * PF_CP_020 queda fuera porque el alta ya se ejecuta dentro de esos dos casos.
  *
  * NOTA sobre PF_CP_031 a PF_CP_038: son las mismas validaciones de campos pero en
  * el detalle del usuario y viven en UsuariosDetalleValidacionesPruebas (solo
@@ -55,14 +58,14 @@ public class UsuariosAltasPruebas extends PruebaBase {
 
             usuarios.guardarElRegistro();
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
     }
 
-    @Test(groups = {"ola5", "usuarios", "escribe_datos"},
+    @Test(groups = {"ola5", "usuarios"},
             description = "PF_CP_039/040/041 Detalle del usuario: editar datos, generar "
                     + "contraseña y cancelar")
     public void pfCp039DetalleDelUsuario() {
@@ -75,7 +78,7 @@ public class UsuariosAltasPruebas extends PruebaBase {
                     "Al guardar no se aviso que se actualizo el usuario. La aplicacion mostro: "
                             + usuarios.ultimoMensaje() + ".");
             usuarios.abrir()
-                    .buscarPorNombre(usuario.nombres())
+                    .buscarPorCorreo(usuario.correo())
                     .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado())
                     .elCargoDelDetalleDebeSer(usuario.cargoEditado());
 
@@ -87,18 +90,18 @@ public class UsuariosAltasPruebas extends PruebaBase {
             // PF_CP_041: Cancelar cierra el detalle y regresa a la pantalla de Usuarios.
             if (!usuarios.elDetalleEstaAbierto()) {
                 usuarios.abrir()
-                        .buscarPorNombre(usuario.nombres())
+                        .buscarPorCorreo(usuario.correo())
                         .abrirElDetalleDelUsuario(usuario.numeroDeEmpleado());
             }
             usuarios.cancelarElDetalle();
             inicio.laDireccionDebeContener("expedient/users");
             usuarios.abrir();
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
     }
 
-    @Test(groups = {"ola5", "usuarios", "escribe_datos"},
+    @Test(groups = {"ola5", "usuarios"},
             description = "PF_CP_042/043/044/045 Desactivar un usuario (aceptar y cancelar el "
                     + "modal) y volver a activarlo")
     public void pfCp042DesactivarYActivarUsuario() {
@@ -123,7 +126,7 @@ public class UsuariosAltasPruebas extends PruebaBase {
             usuarios.activarAlUsuario(usuario.numeroDeEmpleado())
                     .laTablaDebeMostrarAlUsuario(usuario.numeroDeEmpleado(), "Activo");
         } finally {
-            usuarios.desactivarSiQuedoActivo(usuario.nombres(), usuario.numeroDeEmpleado());
+            usuarios.desactivarSiQuedoActivo(usuario.correo(), usuario.numeroDeEmpleado());
         }
     }
 
@@ -133,7 +136,10 @@ public class UsuariosAltasPruebas extends PruebaBase {
         usuarios.abrirElAltaDeUsuario()
                 .llenarElAltaDeUsuario(usuario)
                 .guardarElRegistro();
-        usuarios.abrir().buscarPorNombre(usuario.nombres());
+        // Se filtra por correo (dato unico): filtrar por el nombre ZZAUTOQA trae a
+        // todos los usuarios de automatizacion y el recien creado puede caer en otra
+        // pagina de la tabla.
+        usuarios.abrir().buscarPorCorreo(usuario.correo());
         return usuario;
     }
 
